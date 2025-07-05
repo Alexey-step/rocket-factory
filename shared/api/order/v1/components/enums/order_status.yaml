@@ -1,0 +1,10 @@
+type: string
+description: |
+  Статус платежа:
+  - PENDING_PAYMENT: Ожидает оплаты
+  - PAID: Оплачен
+  - CANCELLED: Отменён
+enum:
+  - PENDING_PAYMENT
+  - PAID
+  - CANCELLED

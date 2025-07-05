@@ -1,0 +1,54 @@
+post:
+  summary: Create order
+  operationId: CreateOrder
+  tags:
+    - Order
+  requestBody:
+    required: true
+    content:
+      application/json:
+        schema:
+          $ref: "../components/create_order_request.yaml"
+  responses:
+    '200':
+      description: Order successfully created
+      content:
+        application/json:
+          schema:
+            $ref: "../components/create_order_response.yaml"
+    '400':
+      description: Bad request
+      content:
+        application/json:
+          schema:
+            $ref: "../components/errors/bad_request_error.yaml"
+    '404':
+      description: Not found
+      content:
+        application/json:
+          schema:
+            $ref: "../components/errors/not_found_error.yaml"
+    '500':
+      description: Internal server error
+      content:
+        application/json:
+          schema:
+            $ref: "../components/errors/internal_server_error.yaml"
+    '502':
+      description: Bad gateway
+      content:
+        application/json:
+          schema:
+            $ref: "../components/errors/bad_gateway_error.yaml"
+    '503':
+      description: Service unavailable
+      content:
+        application/json:
+          schema:
+            $ref: "../components/errors/service_unavailable_error.yaml"
+    default:
+      description: Unexpected error
+      content:
+        application/json:
+          schema:
+            $ref: "../components/errors/generic_error.yaml"

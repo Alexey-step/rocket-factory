@@ -1,0 +1,13 @@
+type: object
+required:
+  - order_uuid
+  - total_price
+properties:
+  order_uuid:
+    type: string
+    format: uuid
+    description: Уникальный идентификатор заказа
+  total_price:
+    type: number
+    format: float64
+    description: Итоговая стоимость заказа

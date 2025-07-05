@@ -1,0 +1,45 @@
+parameters:
+  - $ref: "../params/order_uuid.yaml"
+
+get:
+  summary: Get order by uuid
+  operationId: GetOrder
+  tags:
+    - Order
+  responses:
+    '200':
+      description: Order successfully received
+      content:
+        application/json:
+          schema:
+            $ref: "../components/get_order_response.yaml"
+    '404':
+      description: Not found
+      content:
+        application/json:
+          schema:
+            $ref: "../components/errors/not_found_error.yaml"
+    '500':
+      description: Internal server error
+      content:
+        application/json:
+          schema:
+            $ref: "../components/errors/internal_server_error.yaml"
+    '502':
+      description: Bad gateway
+      content:
+        application/json:
+          schema:
+            $ref: "../components/errors/bad_gateway_error.yaml"
+    '503':
+      description: Service unavailable
+      content:
+        application/json:
+          schema:
+            $ref: "../components/errors/service_unavailable_error.yaml"
+    default:
+      description: Unexpected error
+      content:
+        application/json:
+          schema:
+            $ref: "../components/errors/generic_error.yaml"
