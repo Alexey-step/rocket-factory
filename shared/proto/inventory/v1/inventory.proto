@@ -3,6 +3,7 @@ syntax = "proto3";
 package inventory.v1;
 
 import "google/protobuf/timestamp.proto";
+import "validate/validate.proto";
 
 option go_package = "github.com/Alexey-step/rocket-factory/shared/pkg/proto/inventory/v1;inventory_v1";
 
@@ -64,7 +65,7 @@ message Manufacturer {
 
 // Value - мета информация
 message Value {
-  oneof value {
+  oneof kind {
     string string_value = 1;
     int64 int64_value = 2;
     double double_value = 3;
@@ -84,9 +85,9 @@ message ListPartsResponse {
 
 // PartsFilter - возможные фильтры для получения списка деталей
 message PartsFilter {
-  repeated string uuids = 1;
-  repeated string names = 2;
+  repeated string uuids = 1 [(validate.rules).repeated.unique = true];
+  repeated string names = 2 [(validate.rules).repeated.unique = true];
   repeated Category categories = 3;
-  repeated string manufacturer_countries = 4;
-  repeated string tags = 5;
+  repeated string manufacturer_countries = 4 [(validate.rules).repeated.unique = true];
+  repeated string tags = 5 [(validate.rules).repeated.unique = true];
 }

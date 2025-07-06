@@ -771,11 +771,11 @@ func (m *Value) validate(all bool) error {
 
 	var errors []error
 
-	switch v := m.Value.(type) {
+	switch v := m.Kind.(type) {
 	case *Value_StringValue:
 		if v == nil {
 			err := ValueValidationError{
-				field:  "Value",
+				field:  "Kind",
 				reason: "oneof value cannot be a typed-nil",
 			}
 			if !all {
@@ -787,7 +787,7 @@ func (m *Value) validate(all bool) error {
 	case *Value_Int64Value:
 		if v == nil {
 			err := ValueValidationError{
-				field:  "Value",
+				field:  "Kind",
 				reason: "oneof value cannot be a typed-nil",
 			}
 			if !all {
@@ -799,7 +799,7 @@ func (m *Value) validate(all bool) error {
 	case *Value_DoubleValue:
 		if v == nil {
 			err := ValueValidationError{
-				field:  "Value",
+				field:  "Kind",
 				reason: "oneof value cannot be a typed-nil",
 			}
 			if !all {
@@ -811,7 +811,7 @@ func (m *Value) validate(all bool) error {
 	case *Value_BoolValue:
 		if v == nil {
 			err := ValueValidationError{
-				field:  "Value",
+				field:  "Kind",
 				reason: "oneof value cannot be a typed-nil",
 			}
 			if !all {
@@ -1191,6 +1191,90 @@ func (m *PartsFilter) validate(all bool) error {
 	}
 
 	var errors []error
+
+	_PartsFilter_Uuids_Unique := make(map[string]struct{}, len(m.GetUuids()))
+
+	for idx, item := range m.GetUuids() {
+		_, _ = idx, item
+
+		if _, exists := _PartsFilter_Uuids_Unique[item]; exists {
+			err := PartsFilterValidationError{
+				field:  fmt.Sprintf("Uuids[%v]", idx),
+				reason: "repeated value must contain unique items",
+			}
+			if !all {
+				return err
+			}
+			errors = append(errors, err)
+		} else {
+			_PartsFilter_Uuids_Unique[item] = struct{}{}
+		}
+
+		// no validation rules for Uuids[idx]
+	}
+
+	_PartsFilter_Names_Unique := make(map[string]struct{}, len(m.GetNames()))
+
+	for idx, item := range m.GetNames() {
+		_, _ = idx, item
+
+		if _, exists := _PartsFilter_Names_Unique[item]; exists {
+			err := PartsFilterValidationError{
+				field:  fmt.Sprintf("Names[%v]", idx),
+				reason: "repeated value must contain unique items",
+			}
+			if !all {
+				return err
+			}
+			errors = append(errors, err)
+		} else {
+			_PartsFilter_Names_Unique[item] = struct{}{}
+		}
+
+		// no validation rules for Names[idx]
+	}
+
+	_PartsFilter_ManufacturerCountries_Unique := make(map[string]struct{}, len(m.GetManufacturerCountries()))
+
+	for idx, item := range m.GetManufacturerCountries() {
+		_, _ = idx, item
+
+		if _, exists := _PartsFilter_ManufacturerCountries_Unique[item]; exists {
+			err := PartsFilterValidationError{
+				field:  fmt.Sprintf("ManufacturerCountries[%v]", idx),
+				reason: "repeated value must contain unique items",
+			}
+			if !all {
+				return err
+			}
+			errors = append(errors, err)
+		} else {
+			_PartsFilter_ManufacturerCountries_Unique[item] = struct{}{}
+		}
+
+		// no validation rules for ManufacturerCountries[idx]
+	}
+
+	_PartsFilter_Tags_Unique := make(map[string]struct{}, len(m.GetTags()))
+
+	for idx, item := range m.GetTags() {
+		_, _ = idx, item
+
+		if _, exists := _PartsFilter_Tags_Unique[item]; exists {
+			err := PartsFilterValidationError{
+				field:  fmt.Sprintf("Tags[%v]", idx),
+				reason: "repeated value must contain unique items",
+			}
+			if !all {
+				return err
+			}
+			errors = append(errors, err)
+		} else {
+			_PartsFilter_Tags_Unique[item] = struct{}{}
+		}
+
+		// no validation rules for Tags[idx]
+	}
 
 	if len(errors) > 0 {
 		return PartsFilterMultiError(errors)

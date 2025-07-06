@@ -18,6 +18,7 @@ import (
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/credentials/insecure"
 
+	customMiddleware "github.com/Alexey-step/rocket-factory/order/internal/middleware"
 	orderV1 "github.com/Alexey-step/rocket-factory/shared/pkg/openapi/order/v1"
 	inventory_v1 "github.com/Alexey-step/rocket-factory/shared/pkg/proto/inventory/v1"
 	payment_v1 "github.com/Alexey-step/rocket-factory/shared/pkg/proto/payment/v1"
@@ -33,8 +34,6 @@ const (
 )
 
 func main() {
-	ctx := context.Background()
-
 	// Подключение к gRPC Inventory-сервису
 	inventoryConn, err := grpc.NewClient(
 		grpcInventory,
@@ -45,14 +44,9 @@ func main() {
 		return
 	}
 
-	defer func() {
-		if err := inventoryConn.Close(); err != nil {
-			log.Printf("failed to close inventory connection: %v\n", err)
-		}
-	}()
+	inventoryClient := inventory_v1.NewInventoryServiceClient(inventoryConn)
 
-	invertoryClient := inventory_v1.NewInventoryServiceClient(inventoryConn)
-
+	// Подключение к gRPC Payment-сервису
 	paymentConn, err := grpc.NewClient(
 		grpcPayment,
 		grpc.WithTransportCredentials(insecure.NewCredentials()),
@@ -61,17 +55,11 @@ func main() {
 		log.Printf("failed to connect to payment: %v\n", err)
 	}
 
-	defer func() {
-		if err := paymentConn.Close(); err != nil {
-			log.Printf("failed to close payment connection: %v\n", err)
-		}
-	}()
-
 	paymentClient := payment_v1.NewPaymentServiceClient(paymentConn)
 
 	// Создаем хранилище для данных о заказах
 	storage := NewOrderStorage()
-	service := NewOrderService(storage, invertoryClient, paymentClient)
+	service := NewOrderService(storage, inventoryClient, paymentClient)
 
 	// Создаем обработчик API заказов деталей
 	orderHandler := NewOrderHandler(service)
@@ -79,14 +67,32 @@ func main() {
 	// Создаем OpenAPI сервер
 	orderServer, err := orderV1.NewServer(orderHandler)
 	if err != nil {
+		if err := inventoryConn.Close(); err != nil {
+			log.Printf("failed to close inventory connection: %v\n", err)
+		}
+		if err := paymentConn.Close(); err != nil {
+			log.Printf("failed to close payment connection: %v\n", err)
+		}
 		log.Fatalf("ошибка создания сервера OpenAPI: %v", err)
 	}
+
+	defer func() {
+		if err := inventoryConn.Close(); err != nil {
+			log.Printf("failed to close inventory connection: %v\n", err)
+		}
+	}()
+	defer func() {
+		if err := paymentConn.Close(); err != nil {
+			log.Printf("failed to close payment connection: %v\n", err)
+		}
+	}()
 
 	r := chi.NewRouter()
 
 	// Добавляем middleware
 	r.Use(middleware.Logger)
 	r.Use(middleware.Recoverer)
+	r.Use(customMiddleware.RequestLogger)
 	r.Use(middleware.Timeout(10 * time.Second))
 
 	r.Mount("/", orderServer)
@@ -309,9 +315,11 @@ func (h *OrderHandler) PayOrder(ctx context.Context, req *orderV1.PayOrderReques
 		}, nil
 	}
 
+	paymentMethod := mapOrderToPaymentMethod(req.GetPaymentMethod())
+
 	out, err := h.service.paymentService.PayOrder(ctx, &payment_v1.PayOrderRequest{
 		OrderUuid:     params.OrderUUID.String(),
-		PaymentMethod: mapOrderToPaymentMethod(req.GetPaymentMethod()),
+		PaymentMethod: paymentMethod,
 		UserUuid:      uuid.New().String(),
 	})
 	if err != nil {
@@ -352,12 +360,12 @@ func mapOrderToPaymentMethod(method orderV1.PaymentMethod) payment_v1.PaymentMet
 	switch method {
 	case orderV1.PaymentMethodCARD:
 		return payment_v1.PaymentMethod_PAYMENT_METHOD_CARD
+	case orderV1.PaymentMethodSBP:
+		return payment_v1.PaymentMethod_PAYMENT_METHOD_SBP
 	case orderV1.PaymentMethodCREDITCARD:
 		return payment_v1.PaymentMethod_PAYMENT_METHOD_CREDIT_CARD
 	case orderV1.PaymentMethodINVESTORMONEY:
 		return payment_v1.PaymentMethod_PAYMENT_METHOD_INVESTOR_MONEY
-	case orderV1.PaymentMethodSBP:
-		return payment_v1.PaymentMethod_PAYMENT_METHOD_SBP
 	default:
 		return payment_v1.PaymentMethod_PAYMENT_METHOD_UNSPECIFIED
 	}
