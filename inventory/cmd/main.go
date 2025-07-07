@@ -45,11 +45,10 @@ func main() {
 		),
 	)
 
+	storage := NewInventoryStorageInMemory()
 	service := &InventoryService{
-		parts: make(map[string]*inventoryV1.Part),
+		storage: storage,
 	}
-
-	service.initParts()
 
 	inventoryV1.RegisterInventoryServiceServer(s, service)
 
@@ -71,50 +70,80 @@ func main() {
 	log.Println("✅ Server stopped")
 }
 
-type InventoryService struct {
-	inventoryV1.UnimplementedInventoryServiceServer
+type InventoryStorage interface {
+	Part(uuid string) (*inventoryV1.Part, error)
+	Parts(filter *inventoryV1.PartsFilter) ([]*inventoryV1.Part, error)
+}
 
+type InventoryStorageInMemory struct {
 	mu    sync.RWMutex
 	parts map[string]*inventoryV1.Part
 }
 
-func (s *InventoryService) GetPart(_ context.Context, req *inventoryV1.GetPartRequest) (*inventoryV1.GetPartResponse, error) {
+func NewInventoryStorageInMemory() *InventoryStorageInMemory {
+	s := &InventoryStorageInMemory{
+		parts: make(map[string]*inventoryV1.Part),
+	}
+	s.initParts()
+	return s
+}
+
+func (s *InventoryStorageInMemory) Part(uuid string) (*inventoryV1.Part, error) {
 	s.mu.RLock()
 	defer s.mu.RUnlock()
 
-	part, ok := s.parts[req.GetUuid()]
+	part, ok := s.parts[uuid]
 	if !ok {
-		return nil, status.Errorf(codes.NotFound, "part with UUID %s not found", req.GetUuid())
+		return nil, fmt.Errorf("part with UUID %s not found", uuid)
 	}
 
-	return &inventoryV1.GetPartResponse{
-		Part: part,
-	}, nil
+	return part, nil
+}
+
+func (s *InventoryStorageInMemory) Parts(filter *inventoryV1.PartsFilter) ([]*inventoryV1.Part, error) {
+	s.mu.RLock()
+	defer s.mu.RUnlock()
+
+	var result []*inventoryV1.Part
+	for _, part := range s.parts {
+		if matchesFilter(part, filter) {
+			result = append(result, part)
+		}
+	}
+	return result, nil
+}
+
+func (s *InventoryStorageInMemory) initParts() {
+	for _, part := range generateParts() {
+		s.parts[part.Uuid] = part
+	}
+}
+
+type InventoryService struct {
+	inventoryV1.UnimplementedInventoryServiceServer
+	storage InventoryStorage
+}
+
+func (s *InventoryService) GetPart(_ context.Context, req *inventoryV1.GetPartRequest) (*inventoryV1.GetPartResponse, error) {
+	part, err := s.storage.Part(req.GetUuid())
+	if err != nil {
+		return nil, status.Errorf(codes.NotFound, "error: %v", err)
+	}
+
+	return &inventoryV1.GetPartResponse{Part: part}, nil
 }
 
 func (s *InventoryService) ListParts(_ context.Context, req *inventoryV1.ListPartsRequest) (*inventoryV1.ListPartsResponse, error) {
-	s.mu.RLock()
-	defer s.mu.RUnlock()
-
 	if err := req.Validate(); err != nil {
 		return nil, status.Errorf(codes.InvalidArgument, "validation error: %v", err)
 	}
 
-	var result []*inventoryV1.Part
-
-	filter := req.GetFilter()
-
-	for _, part := range s.parts {
-		if !matchesFilter(part, filter) {
-			continue
-		}
-
-		result = append(result, part)
+	parts, err := s.storage.Parts(req.GetFilter())
+	if err != nil {
+		return nil, status.Errorf(codes.Internal, "failed to list parts: %v", err)
 	}
 
-	return &inventoryV1.ListPartsResponse{
-		Parts: result,
-	}, nil
+	return &inventoryV1.ListPartsResponse{Parts: parts}, nil
 }
 
 func matchesFilter(part *inventoryV1.Part, filter *inventoryV1.PartsFilter) bool {
@@ -152,14 +181,6 @@ func hasCommonElement(a, b []string) bool {
 		}
 	}
 	return false
-}
-
-func (s *InventoryService) initParts() {
-	parts := generateParts()
-
-	for _, part := range parts {
-		s.parts[part.Uuid] = part
-	}
 }
 
 func generateParts() []*inventoryV1.Part {

@@ -7,7 +7,6 @@ import (
 	"net"
 	"os"
 	"os/signal"
-	"sync"
 	"syscall"
 
 	"github.com/google/uuid"
@@ -39,7 +38,7 @@ func main() {
 		),
 	)
 
-	service := &paymentService{}
+	service := &PaymentService{}
 
 	paymentV1.RegisterPaymentServiceServer(s, service)
 
@@ -61,16 +60,11 @@ func main() {
 	log.Println("✅ Server stopped")
 }
 
-type paymentService struct {
+type PaymentService struct {
 	paymentV1.UnimplementedPaymentServiceServer
-
-	mu sync.RWMutex
 }
 
-func (s *paymentService) PayOrder(_ context.Context, _ *paymentV1.PayOrderRequest) (*paymentV1.PayOrderResponse, error) {
-	s.mu.RLock()
-	defer s.mu.RUnlock()
-
+func (s *PaymentService) PayOrder(_ context.Context, _ *paymentV1.PayOrderRequest) (*paymentV1.PayOrderResponse, error) {
 	UUID := uuid.New().String()
 
 	log.Printf("✅Оплата прошла успешно, transaction_uuid: %v\n", UUID)
