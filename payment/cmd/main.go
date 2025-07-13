@@ -1,7 +1,6 @@
 package main
 
 import (
-	"context"
 	"fmt"
 	"log"
 	"net"
@@ -9,11 +8,12 @@ import (
 	"os/signal"
 	"syscall"
 
-	"github.com/google/uuid"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/reflection"
 
+	paymentV1Api "github.com/Alexey-step/rocket-factory/payment/internal/api/payment/v1"
 	interceptor "github.com/Alexey-step/rocket-factory/payment/internal/interceptor"
+	paymentService "github.com/Alexey-step/rocket-factory/payment/internal/service/payment"
 	paymentV1 "github.com/Alexey-step/rocket-factory/shared/pkg/proto/payment/v1"
 )
 
@@ -23,30 +23,31 @@ func main() {
 	lis, err := net.Listen("tcp", fmt.Sprintf(":%d", grpcPort))
 	if err != nil {
 		log.Printf("failed to listen: %v\n", err)
-		return
+		// return
 	}
 
 	defer func() {
-		if cerr := lis.Close(); cerr != nil {
-			log.Printf("failed to close listener: %v\n", cerr)
+		if err = lis.Close(); err != nil {
+			log.Printf("failed to close listener: %v\n", err)
 		}
 	}()
 
 	s := grpc.NewServer(
 		grpc.ChainUnaryInterceptor(
-			grpc.UnaryServerInterceptor(interceptor.LoggerInterceptor()),
+			interceptor.LoggerInterceptor(),
 		),
 	)
 
-	service := &PaymentService{}
+	service := paymentService.NewService()
+	api := paymentV1Api.NewApi(service)
 
-	paymentV1.RegisterPaymentServiceServer(s, service)
+	paymentV1.RegisterPaymentServiceServer(s, api)
 
 	reflection.Register(s)
 
 	go func() {
 		log.Printf("starting gRPC server on port %d\n", grpcPort)
-		err := s.Serve(lis)
+		err = s.Serve(lis)
 		if err != nil {
 			log.Printf("failed to serve: %v\n", err)
 		}
@@ -58,18 +59,4 @@ func main() {
 	log.Println("🛑Shutting down gRPC server...")
 	s.GracefulStop()
 	log.Println("✅ Server stopped")
-}
-
-type PaymentService struct {
-	paymentV1.UnimplementedPaymentServiceServer
-}
-
-func (s *PaymentService) PayOrder(_ context.Context, _ *paymentV1.PayOrderRequest) (*paymentV1.PayOrderResponse, error) {
-	UUID := uuid.New().String()
-
-	log.Printf("✅Оплата прошла успешно, transaction_uuid: %v\n", UUID)
-
-	return &paymentV1.PayOrderResponse{
-		TransactionUuid: UUID,
-	}, nil
 }
