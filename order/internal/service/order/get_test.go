@@ -21,7 +21,7 @@ func (s *ServiceSuite) TestGetOrderSuccess() {
 	}
 
 	s.orderRepository.On("GetOrder", s.ctx, orderUUID).Return(order, nil).Once()
-	resp, err := s.orderRepository.GetOrder(s.ctx, orderUUID)
+	resp, err := s.service.GetOrder(s.ctx, orderUUID)
 
 	s.NoError(err)
 	s.Equal(order, resp)
@@ -32,7 +32,7 @@ func (s *ServiceSuite) TestGetOrderNotFoundErr() {
 	expectedErr := model.ErrOrderNotFound
 
 	s.orderRepository.On("GetOrder", s.ctx, orderUUID).Return(model.OrderData{}, expectedErr).Once()
-	resp, err := s.orderRepository.GetOrder(s.ctx, orderUUID)
+	resp, err := s.service.GetOrder(s.ctx, orderUUID)
 
 	s.Error(err)
 	s.Equal(expectedErr, err)
@@ -44,7 +44,7 @@ func (s *ServiceSuite) TestGetOrderInternalErr() {
 	expectedErr := model.ErrOrderInternalError
 
 	s.orderRepository.On("GetOrder", s.ctx, orderUUID).Return(model.OrderData{}, expectedErr).Once()
-	resp, err := s.orderRepository.GetOrder(s.ctx, orderUUID)
+	resp, err := s.service.GetOrder(s.ctx, orderUUID)
 
 	s.Error(err)
 	s.Equal(expectedErr, err)
