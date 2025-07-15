@@ -4,16 +4,16 @@ import (
 	"google.golang.org/protobuf/types/known/timestamppb"
 
 	"github.com/Alexey-step/rocket-factory/inventory/internal/model"
-	inventory_v1 "github.com/Alexey-step/rocket-factory/shared/pkg/proto/inventory/v1"
+	inventoryV1 "github.com/Alexey-step/rocket-factory/shared/pkg/proto/inventory/v1"
 )
 
-func PartToProto(part model.Part) *inventory_v1.Part {
+func PartToProto(part model.Part) *inventoryV1.Part {
 	var updatedAt *timestamppb.Timestamp
 	if part.UpdatedAt != nil {
 		updatedAt = timestamppb.New(*part.UpdatedAt)
 	}
 
-	return &inventory_v1.Part{
+	return &inventoryV1.Part{
 		Uuid:          part.UUID,
 		Name:          part.Name,
 		Description:   part.Description,
@@ -27,55 +27,55 @@ func PartToProto(part model.Part) *inventory_v1.Part {
 	}
 }
 
-func CategoryToProto(category model.Category) inventory_v1.Category {
+func CategoryToProto(category model.Category) inventoryV1.Category {
 	switch category {
 	case model.CategoryEngine:
-		return inventory_v1.Category_CATEGORY_ENGINE
+		return inventoryV1.Category_CATEGORY_ENGINE
 	case model.CategoryFuel:
-		return inventory_v1.Category_CATEGORY_FUEL
+		return inventoryV1.Category_CATEGORY_FUEL
 	case model.CategoryPorthole:
-		return inventory_v1.Category_CATEGORY_PORTHOLE
+		return inventoryV1.Category_CATEGORY_PORTHOLE
 	case model.CategoryWing:
-		return inventory_v1.Category_CATEGORY_WING
+		return inventoryV1.Category_CATEGORY_WING
 	default:
-		return inventory_v1.Category_CATEGORY_UNSPECIFIED
+		return inventoryV1.Category_CATEGORY_UNSPECIFIED
 	}
 }
 
-func manufacturerToProto(m model.Manufacturer) *inventory_v1.Manufacturer {
-	return &inventory_v1.Manufacturer{
+func manufacturerToProto(m model.Manufacturer) *inventoryV1.Manufacturer {
+	return &inventoryV1.Manufacturer{
 		Name:    m.Name,
 		Country: m.Country,
 		Website: m.Website,
 	}
 }
 
-func metadataToProto(meta model.Metadata) map[string]*inventory_v1.Value {
-	var val *inventory_v1.Value
+func metadataToProto(meta model.Metadata) map[string]*inventoryV1.Value {
+	var val *inventoryV1.Value
 	switch {
 	case meta.StringValue != nil:
-		val = &inventory_v1.Value{
-			Kind: &inventory_v1.Value_StringValue{StringValue: *meta.StringValue},
+		val = &inventoryV1.Value{
+			Kind: &inventoryV1.Value_StringValue{StringValue: *meta.StringValue},
 		}
 	case meta.Int64Value != nil:
-		val = &inventory_v1.Value{
-			Kind: &inventory_v1.Value_Int64Value{Int64Value: *meta.Int64Value},
+		val = &inventoryV1.Value{
+			Kind: &inventoryV1.Value_Int64Value{Int64Value: *meta.Int64Value},
 		}
 	case meta.DoubleValue != nil:
-		val = &inventory_v1.Value{
-			Kind: &inventory_v1.Value_DoubleValue{DoubleValue: *meta.DoubleValue},
+		val = &inventoryV1.Value{
+			Kind: &inventoryV1.Value_DoubleValue{DoubleValue: *meta.DoubleValue},
 		}
 	case meta.BoolValue != nil:
-		val = &inventory_v1.Value{
-			Kind: &inventory_v1.Value_BoolValue{BoolValue: *meta.BoolValue},
+		val = &inventoryV1.Value{
+			Kind: &inventoryV1.Value_BoolValue{BoolValue: *meta.BoolValue},
 		}
 	default:
-		val = &inventory_v1.Value{}
+		val = &inventoryV1.Value{}
 	}
-	return map[string]*inventory_v1.Value{"value": val}
+	return map[string]*inventoryV1.Value{"value": val}
 }
 
-func PartsFilterToModel(filter *inventory_v1.PartsFilter) model.PartsFilter {
+func PartsFilterToModel(filter *inventoryV1.PartsFilter) model.PartsFilter {
 	partsUUIDs := make([]string, 0, len(filter.Uuids))
 	if len(filter.Uuids) > 0 {
 		partsUUIDs = filter.Uuids
@@ -112,23 +112,23 @@ func PartsFilterToModel(filter *inventory_v1.PartsFilter) model.PartsFilter {
 	}
 }
 
-func PartsToProto(parts []model.Part) []*inventory_v1.Part {
-	result := make([]*inventory_v1.Part, 0, len(parts))
+func PartsToProto(parts []model.Part) []*inventoryV1.Part {
+	result := make([]*inventoryV1.Part, 0, len(parts))
 	for _, part := range parts {
 		result = append(result, PartToProto(part))
 	}
 	return result
 }
 
-func CategoryToModel(category inventory_v1.Category) model.Category {
+func CategoryToModel(category inventoryV1.Category) model.Category {
 	switch category {
-	case inventory_v1.Category_CATEGORY_ENGINE:
+	case inventoryV1.Category_CATEGORY_ENGINE:
 		return model.CategoryEngine
-	case inventory_v1.Category_CATEGORY_FUEL:
+	case inventoryV1.Category_CATEGORY_FUEL:
 		return model.CategoryFuel
-	case inventory_v1.Category_CATEGORY_PORTHOLE:
+	case inventoryV1.Category_CATEGORY_PORTHOLE:
 		return model.CategoryPorthole
-	case inventory_v1.Category_CATEGORY_WING:
+	case inventoryV1.Category_CATEGORY_WING:
 		return model.CategoryWing
 	default:
 		return model.CategoryUnspecified

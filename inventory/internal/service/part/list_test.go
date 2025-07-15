@@ -90,7 +90,7 @@ func (s *ServiceSuite) TestListPartsRepoSuccess() {
 	s.Equal(expectedParts, res)
 }
 
-func (s *ServiceSuite) TestGListPartsRepoError() {
+func (s *ServiceSuite) TestListPartsRepoError() {
 	repoErr := gofakeit.Error()
 
 	partsUUIDs := make([]string, gofakeit.Number(1, 5))
@@ -108,7 +108,7 @@ func (s *ServiceSuite) TestGListPartsRepoError() {
 		partsNames[i] = gofakeit.RandomString([]string{"UNKNOWN", "ENGINE", "FUEL", "PORTHOLE", "WING"})
 	}
 
-	manufactureCauntries := make([]string, gofakeit.Number(1, 5))
+	manufactureCountries := make([]string, gofakeit.Number(1, 5))
 	for i := range partsCategories {
 		partsNames[i] = gofakeit.Country()
 	}
@@ -122,7 +122,7 @@ func (s *ServiceSuite) TestGListPartsRepoError() {
 		Uuids:                 partsUUIDs,
 		Names:                 partsNames,
 		Categories:            partsCategories,
-		ManufacturerCountries: manufactureCauntries,
+		ManufacturerCountries: manufactureCountries,
 		Tags:                  tags,
 	}
 

@@ -368,14 +368,12 @@ func (s *CreateOrderRequest) encodeFields(e *jx.Encoder) {
 		json.EncodeUUID(e, s.UserUUID)
 	}
 	{
-		if s.PartUuids != nil {
-			e.FieldStart("part_uuids")
-			e.ArrStart()
-			for _, elem := range s.PartUuids {
-				json.EncodeUUID(e, elem)
-			}
-			e.ArrEnd()
+		e.FieldStart("part_uuids")
+		e.ArrStart()
+		for _, elem := range s.PartUuids {
+			json.EncodeUUID(e, elem)
 		}
+		e.ArrEnd()
 	}
 }
 
@@ -406,6 +404,7 @@ func (s *CreateOrderRequest) Decode(d *jx.Decoder) error {
 				return errors.Wrap(err, "decode field \"user_uuid\"")
 			}
 		case "part_uuids":
+			requiredBitSet[0] |= 1 << 1
 			if err := func() error {
 				s.PartUuids = make([]uuid.UUID, 0)
 				if err := d.Arr(func(d *jx.Decoder) error {
@@ -434,7 +433,7 @@ func (s *CreateOrderRequest) Decode(d *jx.Decoder) error {
 	// Validate required fields.
 	var failures []validate.FieldError
 	for i, mask := range [1]uint8{
-		0b00000001,
+		0b00000011,
 	} {
 		if result := (requiredBitSet[i] & mask) ^ mask; result != 0 {
 			// Mask only required fields and check equality to mask using XOR.

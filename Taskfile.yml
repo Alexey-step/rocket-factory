@@ -573,7 +573,7 @@ tasks:
           ORDER2_STATUS=$(echo $ORDER2_INFO | grep -o '"status": "[^"]*' | cut -d'"' -f4)
         fi
         
-        if [[ "$ORDER2_STATUS" != *"CANCELLED"* ]]; then
+        if [[ "$ORDER2_STATUS" != *"CANCELED"* ]]; then
           echo "❌ Неверный статус отмененного заказа. Ожидался CANCELLED, получен: $ORDER2_STATUS"
           echo "🔍 Детали заказа: $ORDER2_INFO"
           exit 1

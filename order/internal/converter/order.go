@@ -79,7 +79,6 @@ func UUIDsToStrings(arr []uuid.UUID) []string {
 	return uuids
 }
 
-func paymentMethodToOpt(pm model.PaymentMethod) orderV1.PaymentMethod {
-	// Реализуйте по аналогии с OptUUID, если нужно
-	return orderV1.PaymentMethod(pm)
+func paymentMethodToOpt(paymentMethod model.PaymentMethod) orderV1.PaymentMethod {
+	return orderV1.PaymentMethod(paymentMethod)
 }

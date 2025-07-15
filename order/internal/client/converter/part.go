@@ -7,18 +7,19 @@ import (
 	"github.com/samber/lo"
 
 	"github.com/Alexey-step/rocket-factory/order/internal/model"
-	inventory_v1 "github.com/Alexey-step/rocket-factory/shared/pkg/proto/inventory/v1"
+	inventoryV1 "github.com/Alexey-step/rocket-factory/shared/pkg/proto/inventory/v1"
 )
 
-func PartListToModel(parts []*inventory_v1.Part) []model.Part {
-	modelParts := make([]model.Part, len(parts))
+func PartListToModel(parts []*inventoryV1.Part) []model.Part {
+	var modelParts []model.Part
 	for _, part := range parts {
-		modelParts = append(modelParts, PartToModel(part))
+		modelPart := PartToModel(part)
+		modelParts = append(modelParts, modelPart)
 	}
 	return modelParts
 }
 
-func PartToModel(part *inventory_v1.Part) model.Part {
+func PartToModel(part *inventoryV1.Part) model.Part {
 	var updatedAt *time.Time
 	if part.UpdatedAt != nil {
 		updatedAt = lo.ToPtr(part.UpdatedAt.AsTime())
@@ -40,15 +41,19 @@ func PartToModel(part *inventory_v1.Part) model.Part {
 	}
 }
 
-func DimensionsToModel(dimensions *inventory_v1.Dimensions) model.Dimensions {
+func DimensionsToModel(dimensions *inventoryV1.Dimensions) model.Dimensions {
+	if dimensions == nil {
+		return model.Dimensions{}
+	}
 	return model.Dimensions{
 		Length: dimensions.Length,
 		Width:  dimensions.Width,
 		Height: dimensions.Height,
+		Weight: dimensions.Weight,
 	}
 }
 
-func ManufacturerToModel(manufacturer *inventory_v1.Manufacturer) model.Manufacturer {
+func ManufacturerToModel(manufacturer *inventoryV1.Manufacturer) model.Manufacturer {
 	return model.Manufacturer{
 		Name:    manufacturer.Name,
 		Country: manufacturer.Country,
@@ -56,7 +61,7 @@ func ManufacturerToModel(manufacturer *inventory_v1.Manufacturer) model.Manufact
 	}
 }
 
-func MetadataToModel(metadata map[string]*inventory_v1.Value) model.Metadata {
+func MetadataToModel(metadata map[string]*inventoryV1.Value) model.Metadata {
 	res := model.Metadata{}
 
 	for _, value := range metadata {
@@ -65,13 +70,13 @@ func MetadataToModel(metadata map[string]*inventory_v1.Value) model.Metadata {
 		}
 
 		switch v := value.Kind.(type) {
-		case *inventory_v1.Value_StringValue:
+		case *inventoryV1.Value_StringValue:
 			res.StringValue = lo.ToPtr(v.StringValue)
-		case *inventory_v1.Value_Int64Value:
+		case *inventoryV1.Value_Int64Value:
 			res.Int64Value = lo.ToPtr(v.Int64Value)
-		case *inventory_v1.Value_BoolValue:
+		case *inventoryV1.Value_BoolValue:
 			res.BoolValue = lo.ToPtr(v.BoolValue)
-		case *inventory_v1.Value_DoubleValue:
+		case *inventoryV1.Value_DoubleValue:
 			res.DoubleValue = lo.ToPtr(v.DoubleValue)
 		default:
 			log.Printf("unknown metadata metadata type: %T", value)
@@ -80,8 +85,8 @@ func MetadataToModel(metadata map[string]*inventory_v1.Value) model.Metadata {
 	return res
 }
 
-func PartsFilterToProto(filter model.PartsFilter) *inventory_v1.PartsFilter {
-	categories := make([]inventory_v1.Category, len(filter.Categories))
+func PartsFilterToProto(filter model.PartsFilter) *inventoryV1.PartsFilter {
+	categories := make([]inventoryV1.Category, len(filter.Categories))
 
 	if len(filter.Categories) > 0 {
 		for _, category := range filter.Categories {
@@ -89,25 +94,28 @@ func PartsFilterToProto(filter model.PartsFilter) *inventory_v1.PartsFilter {
 		}
 	}
 
-	return &inventory_v1.PartsFilter{
+	filters := &inventoryV1.PartsFilter{
 		Uuids:                 filter.Uuids,
 		Names:                 filter.Names,
 		Categories:            categories,
 		ManufacturerCountries: filter.ManufacturerCountries,
+		Tags:                  filter.Tags,
 	}
+
+	return filters
 }
 
-func categoryToProto(category model.Category) inventory_v1.Category {
+func categoryToProto(category model.Category) inventoryV1.Category {
 	switch category {
 	case model.CategoryEngine:
-		return inventory_v1.Category_CATEGORY_ENGINE
+		return inventoryV1.Category_CATEGORY_ENGINE
 	case model.CategoryFuel:
-		return inventory_v1.Category_CATEGORY_FUEL
+		return inventoryV1.Category_CATEGORY_FUEL
 	case model.CategoryPorthole:
-		return inventory_v1.Category_CATEGORY_PORTHOLE
+		return inventoryV1.Category_CATEGORY_PORTHOLE
 	case model.CategoryWing:
-		return inventory_v1.Category_CATEGORY_WING
+		return inventoryV1.Category_CATEGORY_WING
 	default:
-		return inventory_v1.Category_CATEGORY_UNSPECIFIED
+		return inventoryV1.Category_CATEGORY_UNSPECIFIED
 	}
 }

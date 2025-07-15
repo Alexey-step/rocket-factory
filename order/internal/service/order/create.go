@@ -17,7 +17,7 @@ func (s *service) CreateOrder(ctx context.Context, userUUID string, partsUUIDs [
 	}
 
 	if len(partsList) != len(partsUUIDs) {
-		return model.OrderCreationInfo{}, err
+		return model.OrderCreationInfo{}, model.ErrOrderConflict
 	}
 
 	orderInfo, createOrderErr := s.orderRepository.CreateOrder(ctx, userUUID, partsList)

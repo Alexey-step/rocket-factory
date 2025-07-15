@@ -73,8 +73,7 @@ func main() {
 		if err := paymentConn.Close(); err != nil {
 			log.Printf("failed to close payment connection: %v\n", err)
 		}
-		// log.Fatalf("ошибка создания сервера OpenAPI: %v", err)
-		log.Printf("ошибка создания сервера OpenAPI: %v", err)
+		log.Fatalf("ошибка создания сервера OpenAPI: %v", err)
 	}
 
 	defer func() {

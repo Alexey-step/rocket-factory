@@ -125,11 +125,11 @@ func (s *ServiceSuite) TestCancelOrderInternalErr() {
 		PartUuids:     []string{gofakeit.UUID()},
 		TotalPrice:    gofakeit.Price(100, 1000),
 		PaymentMethod: lo.ToPtr(model.PaymentMethod("CREDIT_CARD")),
-		Status:        model.OrderStatus("UNKNOWN_STATUS"),
+		Status:        "UNKNOWN_STATUS",
 		CreatedAt:     gofakeit.Date(),
 	}
 
-	s.orderRepository.On("GetOrder", s.ctx, orderUUID).Return(order, expectedErr).Once()
+	s.orderRepository.On("GetOrder", s.ctx, orderUUID).Return(order, nil).Once()
 	err := s.service.CancelOrder(s.ctx, orderUUID)
 	s.Error(err)
 	s.Equal(expectedErr, err)

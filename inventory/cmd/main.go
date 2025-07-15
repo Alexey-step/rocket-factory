@@ -1,7 +1,6 @@
 package main
 
 import (
-	"fmt"
 	"log"
 	"net"
 	"os"
@@ -18,13 +17,13 @@ import (
 	inventoryV1 "github.com/Alexey-step/rocket-factory/shared/pkg/proto/inventory/v1"
 )
 
-const grpcPort = 50051
+const grpcAddr = "localhost:50051"
 
 func main() {
-	lis, err := net.Listen("tcp", fmt.Sprintf(":%d", grpcPort))
+	lis, err := net.Listen("tcp", grpcAddr)
 	if err != nil {
 		log.Printf("failed to listen: %v\n", err)
-		// return
+		return
 	}
 
 	defer func() {
@@ -49,7 +48,7 @@ func main() {
 	reflection.Register(s)
 
 	go func() {
-		log.Printf("gRPC сервер запущен на порту %d\n", grpcPort)
+		log.Printf("🚀 gRPC InventoryService server listening on %s\n", grpcAddr)
 		err = s.Serve(lis)
 		if err != nil {
 			log.Printf("failed to serve: %v\n", err)

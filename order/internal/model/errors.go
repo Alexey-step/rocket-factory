@@ -13,7 +13,7 @@ var (
 
 // Parts errors
 var (
-	ErrPartsNotFound = errors.New("some parts not found")
+	ErrPartsNotFound = errors.New("parts not found")
 )
 
 // Payment errors

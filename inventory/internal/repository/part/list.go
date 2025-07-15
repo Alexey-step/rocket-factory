@@ -20,11 +20,15 @@ func (r *repository) ListParts(_ context.Context, filter model.PartsFilter) ([]m
 		}
 	}
 
+	if len(result) == 0 {
+		return nil, model.ErrPartsNotFound
+	}
+
 	return result, nil
 }
 
 func matchesFilter(part model.Part, filter model.PartsFilter) bool {
-	if len(filter.Uuids) > 0 && !slices.Contains(filter.Uuids, part.UUID) {
+	if len(filter.Uuids) > 0 && len(part.UUID) > 0 && !slices.Contains(filter.Uuids, part.UUID) {
 		return false
 	}
 

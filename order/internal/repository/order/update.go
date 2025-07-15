@@ -10,7 +10,7 @@ import (
 	repoModel "github.com/Alexey-step/rocket-factory/order/internal/repository/model"
 )
 
-func (r *repository) UpdateOrder(ctx context.Context, orderUUID string, orderUpdateInfo model.OrderUpdateInfo) error {
+func (r *repository) UpdateOrder(_ context.Context, orderUUID string, orderUpdateInfo model.OrderUpdateInfo) error {
 	r.mu.RLock()
 	defer r.mu.RUnlock()
 

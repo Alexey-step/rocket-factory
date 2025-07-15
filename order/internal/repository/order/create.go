@@ -2,6 +2,7 @@ package order
 
 import (
 	"context"
+	"log"
 	"time"
 
 	"github.com/google/uuid"
@@ -10,11 +11,11 @@ import (
 	repoModel "github.com/Alexey-step/rocket-factory/order/internal/repository/model"
 )
 
-func (r *repository) CreateOrder(ctx context.Context, userUUID string, parts []model.Part) (info model.OrderCreationInfo, err error) {
+func (r *repository) CreateOrder(_ context.Context, userUUID string, parts []model.Part) (info model.OrderCreationInfo, err error) {
 	r.mu.RLock()
 	defer r.mu.RUnlock()
 
-	orUUID := uuid.New().String()
+	orUUID := uuid.NewString()
 
 	var partUUIDs []string
 	var totPrice float64
@@ -33,6 +34,17 @@ func (r *repository) CreateOrder(ctx context.Context, userUUID string, parts []m
 	}
 
 	r.orders[orUUID] = order
+
+	log.Printf(`
+💳 [Order Created]
+• 🆔 Order UUID: %s
+• 👤 User UUID: %s
+• 💰 Part UUIDs: %v
+• 💰 Total Price: %f
+• 💰 Status: %s
+• 💰 CreatedAt: %v
+`, order.UUID, order.UserUUID, order.PartUuids, order.TotalPrice, order.Status, order.CreatedAt,
+	)
 
 	return model.OrderCreationInfo{
 		OrderUUID:  orUUID,
