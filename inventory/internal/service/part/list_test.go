@@ -34,30 +34,11 @@ func (s *ServiceSuite) TestListPartsRepoSuccess() {
 		createdAt = time.Now()
 	)
 
-	partsUUIDs := make([]string, gofakeit.Number(1, 5))
-	for i := range partsUUIDs {
-		partsUUIDs[i] = gofakeit.UUID()
-	}
-
-	partsNames := make([]string, gofakeit.Number(1, 5))
-	for i := range partsNames {
-		partsNames[i] = gofakeit.Name()
-	}
-
-	partsCategories := make([]model.Category, gofakeit.Number(1, 5))
-	for i := range partsCategories {
-		partsCategories[i] = model.Category(gofakeit.RandomString([]string{"UNKNOWN", "ENGINE", "FUEL", "PORTHOLE", "WING"}))
-	}
-
-	manufactureCountries := make([]string, gofakeit.Number(1, 5))
-	for i := range manufactureCountries {
-		manufactureCountries[i] = gofakeit.Country()
-	}
-
-	tags := make([]string, gofakeit.Number(1, 5))
-	for i := range tags {
-		tags[i] = gofakeit.Word()
-	}
+	partsUUIDs := []string{gofakeit.UUID(), gofakeit.UUID()}
+	partsNames := []string{gofakeit.Name(), gofakeit.Name()}
+	partsCategories := []model.Category{"UNKNOWN", "ENGINE", "FUEL", "PORTHOLE", "WING"}
+	manufactureCountries := []string{gofakeit.Country(), gofakeit.Country()}
+	tags := []string{gofakeit.Word(), gofakeit.Word()}
 
 	filter := model.PartsFilter{
 		Uuids:                 partsUUIDs,
@@ -93,30 +74,11 @@ func (s *ServiceSuite) TestListPartsRepoSuccess() {
 func (s *ServiceSuite) TestListPartsRepoError() {
 	repoErr := gofakeit.Error()
 
-	partsUUIDs := make([]string, gofakeit.Number(1, 5))
-	for i := range partsUUIDs {
-		partsUUIDs[i] = gofakeit.UUID()
-	}
-
-	partsNames := make([]string, gofakeit.Number(1, 5))
-	for i := range partsNames {
-		partsNames[i] = gofakeit.Name()
-	}
-
-	partsCategories := make([]model.Category, gofakeit.Number(1, 5))
-	for i := range partsCategories {
-		partsCategories[i] = model.Category(gofakeit.RandomString([]string{"UNKNOWN", "ENGINE", "FUEL", "PORTHOLE", "WING"}))
-	}
-
-	manufactureCountries := make([]string, gofakeit.Number(1, 5))
-	for i := range manufactureCountries {
-		manufactureCountries[i] = gofakeit.Country()
-	}
-
-	tags := make([]string, gofakeit.Number(1, 5))
-	for i := range tags {
-		tags[i] = gofakeit.Word()
-	}
+	partsUUIDs := []string{gofakeit.UUID(), gofakeit.UUID()}
+	partsNames := []string{gofakeit.Name(), gofakeit.Name()}
+	partsCategories := []model.Category{"UNKNOWN", "ENGINE", "FUEL", "PORTHOLE", "WING"}
+	manufactureCountries := []string{gofakeit.Country(), gofakeit.Country()}
+	tags := []string{gofakeit.Word(), gofakeit.Word()}
 
 	filter := model.PartsFilter{
 		Uuids:                 partsUUIDs,

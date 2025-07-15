@@ -11,7 +11,7 @@ import (
 
 type ServiceSuite struct {
 	suite.Suite
-
+	//nolint:containedctx
 	ctx context.Context
 
 	service *mocks.InventoryService
