@@ -46,12 +46,12 @@ func (s *ServiceSuite) TestListPartsRepoSuccess() {
 
 	partsCategories := make([]model.Category, gofakeit.Number(1, 5))
 	for i := range partsCategories {
-		partsNames[i] = gofakeit.RandomString([]string{"UNKNOWN", "ENGINE", "FUEL", "PORTHOLE", "WING"})
+		partsCategories[i] = model.Category(gofakeit.RandomString([]string{"UNKNOWN", "ENGINE", "FUEL", "PORTHOLE", "WING"}))
 	}
 
-	manufactureCauntries := make([]string, gofakeit.Number(1, 5))
-	for i := range partsCategories {
-		partsNames[i] = gofakeit.Country()
+	manufactureCountries := make([]string, gofakeit.Number(1, 5))
+	for i := range manufactureCountries {
+		manufactureCountries[i] = gofakeit.Country()
 	}
 
 	tags := make([]string, gofakeit.Number(1, 5))
@@ -63,7 +63,7 @@ func (s *ServiceSuite) TestListPartsRepoSuccess() {
 		Uuids:                 partsUUIDs,
 		Names:                 partsNames,
 		Categories:            partsCategories,
-		ManufacturerCountries: manufactureCauntries,
+		ManufacturerCountries: manufactureCountries,
 		Tags:                  tags,
 	}
 
@@ -105,12 +105,12 @@ func (s *ServiceSuite) TestListPartsRepoError() {
 
 	partsCategories := make([]model.Category, gofakeit.Number(1, 5))
 	for i := range partsCategories {
-		partsNames[i] = gofakeit.RandomString([]string{"UNKNOWN", "ENGINE", "FUEL", "PORTHOLE", "WING"})
+		partsCategories[i] = model.Category(gofakeit.RandomString([]string{"UNKNOWN", "ENGINE", "FUEL", "PORTHOLE", "WING"}))
 	}
 
 	manufactureCountries := make([]string, gofakeit.Number(1, 5))
-	for i := range partsCategories {
-		partsNames[i] = gofakeit.Country()
+	for i := range manufactureCountries {
+		manufactureCountries[i] = gofakeit.Country()
 	}
 
 	tags := make([]string, gofakeit.Number(1, 5))
