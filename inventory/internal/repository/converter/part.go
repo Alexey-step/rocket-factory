@@ -39,11 +39,23 @@ func PartManufacturerToModel(manufacturer repoModel.Manufacturer) model.Manufact
 	}
 }
 
-func PartMetadataToModel(metadata repoModel.Metadata) model.Metadata {
-	return model.Metadata{
-		StringValue: metadata.StringValue,
-		Int64Value:  metadata.Int64Value,
-		DoubleValue: metadata.DoubleValue,
-		BoolValue:   metadata.BoolValue,
+func PartMetadataToModel(metadata map[string]repoModel.Metadata) map[string]model.Metadata {
+	result := make(map[string]model.Metadata)
+	for k, v := range metadata {
+		result[k] = model.Metadata{
+			StringValue: v.StringValue,
+			Int64Value:  v.Int64Value,
+			DoubleValue: v.DoubleValue,
+			BoolValue:   v.BoolValue,
+		}
 	}
+	return result
+}
+
+func PartsToModel(parts []repoModel.Part) []model.Part {
+	result := make([]model.Part, len(parts))
+	for i, part := range parts {
+		result[i] = PartToModel(part)
+	}
+	return result
 }

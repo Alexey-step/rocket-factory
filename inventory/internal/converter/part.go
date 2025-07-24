@@ -50,29 +50,31 @@ func manufacturerToProto(m model.Manufacturer) *inventoryV1.Manufacturer {
 	}
 }
 
-func metadataToProto(meta model.Metadata) map[string]*inventoryV1.Value {
-	var val *inventoryV1.Value
-	switch {
-	case meta.StringValue != nil:
-		val = &inventoryV1.Value{
-			Kind: &inventoryV1.Value_StringValue{StringValue: *meta.StringValue},
+func metadataToProto(meta map[string]model.Metadata) map[string]*inventoryV1.Value {
+	result := make(map[string]*inventoryV1.Value)
+	for k, v := range meta {
+		switch {
+		case v.StringValue != nil:
+			result[k] = &inventoryV1.Value{
+				Kind: &inventoryV1.Value_StringValue{StringValue: *v.StringValue},
+			}
+		case v.Int64Value != nil:
+			result[k] = &inventoryV1.Value{
+				Kind: &inventoryV1.Value_Int64Value{Int64Value: *v.Int64Value},
+			}
+		case v.DoubleValue != nil:
+			result[k] = &inventoryV1.Value{
+				Kind: &inventoryV1.Value_DoubleValue{DoubleValue: *v.DoubleValue},
+			}
+		case v.BoolValue != nil:
+			result[k] = &inventoryV1.Value{
+				Kind: &inventoryV1.Value_BoolValue{BoolValue: *v.BoolValue},
+			}
+		default:
+			result[k] = &inventoryV1.Value{}
 		}
-	case meta.Int64Value != nil:
-		val = &inventoryV1.Value{
-			Kind: &inventoryV1.Value_Int64Value{Int64Value: *meta.Int64Value},
-		}
-	case meta.DoubleValue != nil:
-		val = &inventoryV1.Value{
-			Kind: &inventoryV1.Value_DoubleValue{DoubleValue: *meta.DoubleValue},
-		}
-	case meta.BoolValue != nil:
-		val = &inventoryV1.Value{
-			Kind: &inventoryV1.Value_BoolValue{BoolValue: *meta.BoolValue},
-		}
-	default:
-		val = &inventoryV1.Value{}
 	}
-	return map[string]*inventoryV1.Value{"value": val}
+	return result
 }
 
 func PartsFilterToModel(filter *inventoryV1.PartsFilter) model.PartsFilter {
@@ -118,19 +120,4 @@ func PartsToProto(parts []model.Part) []*inventoryV1.Part {
 		result = append(result, PartToProto(part))
 	}
 	return result
-}
-
-func CategoryToModel(category inventoryV1.Category) model.Category {
-	switch category {
-	case inventoryV1.Category_CATEGORY_ENGINE:
-		return model.CategoryEngine
-	case inventoryV1.Category_CATEGORY_FUEL:
-		return model.CategoryFuel
-	case inventoryV1.Category_CATEGORY_PORTHOLE:
-		return model.CategoryPorthole
-	case inventoryV1.Category_CATEGORY_WING:
-		return model.CategoryWing
-	default:
-		return model.CategoryUnspecified
-	}
 }

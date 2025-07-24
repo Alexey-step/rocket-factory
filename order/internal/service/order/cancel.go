@@ -12,21 +12,34 @@ func (s *service) CancelOrder(ctx context.Context, userUUID string) error {
 		return err
 	}
 
-	switch order.Status {
-	case model.OrderStatusPaid:
-		return model.ErrOrderConflict
-	case model.OrderStatusCanceled:
-		return model.ErrOrderConflict
-	case model.OrderStatusPendingPayment:
-		status := model.OrderStatusCanceled
-		err = s.orderRepository.UpdateOrder(ctx, order.UUID, model.OrderUpdateInfo{
-			Status: &status,
-		})
-		if err != nil {
-			return err
-		}
-		return nil
-	default:
+	if err = statusToError(order.Status); err != nil {
+		return err
+	}
+
+	status := model.OrderStatusCanceled
+	err = s.orderRepository.UpdateOrder(ctx, order.UUID, model.OrderUpdateInfo{
+		Status: &status,
+	})
+	if err != nil {
+		return err
+	}
+
+	return nil
+}
+
+func statusToError(status model.OrderStatus) error {
+	statusToError := map[model.OrderStatus]error{
+		model.OrderStatusPaid:     model.ErrOrderConflict,
+		model.OrderStatusCanceled: model.ErrOrderConflict,
+	}
+
+	if err, ok := statusToError[status]; ok {
+		return err
+	}
+
+	if status != model.OrderStatusPendingPayment {
 		return model.ErrOrderInternalError
 	}
+
+	return nil
 }

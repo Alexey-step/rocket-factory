@@ -1,6 +1,8 @@
 package part
 
 import (
+	"context"
+	"log"
 	"math"
 
 	"github.com/brianvoe/gofakeit/v7"
@@ -11,12 +13,19 @@ import (
 	repoModel "github.com/Alexey-step/rocket-factory/inventory/internal/repository/model"
 )
 
-func (r *repository) InitParts() {
+func (r *repository) InitParts(ctx context.Context) {
 	parts := generateParts()
 
-	for _, part := range parts {
-		r.data[part.UUID] = part
+	docs := make([]interface{}, len(parts))
+	for i, part := range parts {
+		docs[i] = part
 	}
+
+	_, err := r.collection.InsertMany(ctx, docs)
+	if err != nil {
+		panic("failed to insert parts: " + err.Error())
+	}
+	log.Println("✅ Inventory parts collection initialized")
 }
 
 func generateParts() []repoModel.Part {
@@ -93,15 +102,21 @@ func generateTags() []string {
 	return tags
 }
 
-func generateMetadata() repoModel.Metadata {
-	metadata := repoModel.Metadata{
-		StringValue: lo.ToPtr(gofakeit.Word()),
-		Int64Value:  lo.ToPtr(gofakeit.Int64()),
-		DoubleValue: lo.ToPtr(gofakeit.Float64()),
-		BoolValue:   lo.ToPtr(gofakeit.Bool()),
+func generateMetadata() map[string]repoModel.Metadata {
+	return map[string]repoModel.Metadata{
+		"string": {
+			StringValue: lo.ToPtr(gofakeit.Word()),
+		},
+		"int": {
+			Int64Value: lo.ToPtr(gofakeit.Int64()),
+		},
+		"double": {
+			DoubleValue: lo.ToPtr(gofakeit.Float64()),
+		},
+		"bool": {
+			BoolValue: lo.ToPtr(gofakeit.Bool()),
+		},
 	}
-
-	return metadata
 }
 
 func roundTo(x float64) float64 {

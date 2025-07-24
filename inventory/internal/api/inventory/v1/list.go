@@ -20,13 +20,7 @@ func (a *api) ListParts(ctx context.Context, req *inventoryV1.ListPartsRequest) 
 		if errors.Is(err, model.ErrPartsNotFound) {
 			return nil, status.Errorf(codes.NotFound, "inventory service error: %v", err)
 		}
-		if errors.Is(err, model.ErrPartsInternalError) {
-			return nil, status.Errorf(codes.Internal, "inventory service error: %v", err)
-		}
-		if errors.Is(err, context.DeadlineExceeded) || errors.Is(err, context.Canceled) {
-			return nil, status.Errorf(codes.Unavailable, "inventory service error: %v", err)
-		}
-		return nil, err
+		return nil, status.Errorf(codes.Internal, "inventory service error: %v", err)
 	}
 
 	return &inventoryV1.ListPartsResponse{

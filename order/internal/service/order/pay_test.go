@@ -1,26 +1,25 @@
 package order
 
 import (
+	"context"
+	"testing"
+
 	"github.com/brianvoe/gofakeit/v7"
 	"github.com/samber/lo"
+	"github.com/stretchr/testify/assert"
 
+	clientMocks "github.com/Alexey-step/rocket-factory/order/internal/client/grpc/mocks"
 	"github.com/Alexey-step/rocket-factory/order/internal/model"
+	"github.com/Alexey-step/rocket-factory/order/internal/repository/mocks"
 )
 
-func (s *ServiceSuite) TestPayOrderSuccess() {
+func TestPayOrderSuccess(t *testing.T) {
+	ctx := context.Background()
 	orderUUID := gofakeit.UUID()
 	paymentMethod := "CREDIT_CARD"
 	transactionUUID := gofakeit.UUID()
 
-	order := model.OrderData{
-		UUID:          orderUUID,
-		UserUUID:      gofakeit.UUID(),
-		PartUuids:     []string{gofakeit.UUID()},
-		TotalPrice:    gofakeit.Price(100, 1000),
-		PaymentMethod: lo.ToPtr(model.PaymentMethod("CREDIT_CARD")),
-		Status:        model.OrderStatusPendingPayment,
-		CreatedAt:     gofakeit.Date(),
-	}
+	order := getMockedPayOrder(orderUUID, model.OrderStatusPendingPayment)
 
 	orderInfo := model.OrderUpdateInfo{
 		Status:          lo.ToPtr(model.OrderStatusPaid),
@@ -28,185 +27,216 @@ func (s *ServiceSuite) TestPayOrderSuccess() {
 		TransactionUUID: lo.ToPtr(transactionUUID),
 	}
 
-	s.orderRepository.On("GetOrder", s.ctx, orderUUID).Return(order, nil).Once()
-	s.paymentClient.On("PayOrder", s.ctx, order.UserUUID, orderUUID, paymentMethod).Return(transactionUUID, nil).Once()
-	s.orderRepository.On("UpdateOrder", s.ctx, orderUUID, orderInfo).Return(nil).Once()
+	orderRepository := mocks.NewOrderRepository(t)
+	inventoryClient := clientMocks.NewInventoryClient(t)
+	paymentClient := clientMocks.NewPaymentClient(t)
 
-	resp, err := s.service.PayOrder(s.ctx, orderUUID, paymentMethod)
-	s.NoError(err)
-	s.Equal(transactionUUID, resp)
+	orderService := NewService(
+		orderRepository,
+		inventoryClient,
+		paymentClient,
+	)
+
+	orderRepository.On("GetOrder", ctx, orderUUID).Return(order, nil).Once()
+	paymentClient.On("PayOrder", ctx, order.UserUUID, orderUUID, paymentMethod).Return(transactionUUID, nil).Once()
+	orderRepository.On("UpdateOrder", ctx, orderUUID, orderInfo).Return(nil).Once()
+
+	resp, err := orderService.PayOrder(ctx, orderUUID, paymentMethod)
+	assert.NoError(t, err)
+	assert.Equal(t, transactionUUID, resp)
 }
 
-func (s *ServiceSuite) TestPayOrderFailGetOrder() {
+func TestPayOrderFailGetOrder(t *testing.T) {
+	ctx := context.Background()
 	orderUUID := gofakeit.UUID()
 	paymentMethod := "CREDIT_CARD"
 	expectedErr := model.ErrOrderNotFound
 
-	s.orderRepository.On("GetOrder", s.ctx, orderUUID).Return(model.OrderData{}, expectedErr).Once()
+	orderRepository := mocks.NewOrderRepository(t)
+	inventoryClient := clientMocks.NewInventoryClient(t)
+	paymentClient := clientMocks.NewPaymentClient(t)
 
-	resp, err := s.service.PayOrder(s.ctx, orderUUID, paymentMethod)
-	s.Error(err)
-	s.Equal(err, expectedErr)
-	s.Empty(resp)
+	orderService := NewService(
+		orderRepository,
+		inventoryClient,
+		paymentClient,
+	)
+
+	orderRepository.On("GetOrder", ctx, orderUUID).Return(model.OrderData{}, expectedErr).Once()
+
+	resp, err := orderService.PayOrder(ctx, orderUUID, paymentMethod)
+	assert.Error(t, err)
+	assert.Equal(t, err, expectedErr)
+	assert.Empty(t, resp)
 }
 
-func (s *ServiceSuite) TestPayOrderFail() {
+func TestPayOrderFail(t *testing.T) {
+	ctx := context.Background()
 	orderUUID := gofakeit.UUID()
 	paymentMethod := "CREDIT_CARD"
-	// transactionUUID := gofakeit.UUID()
 	expectedErr := model.ErrPaymentConflict
 
-	order := model.OrderData{
-		UUID:          orderUUID,
-		UserUUID:      gofakeit.UUID(),
-		PartUuids:     []string{gofakeit.UUID()},
-		TotalPrice:    gofakeit.Price(100, 1000),
-		PaymentMethod: lo.ToPtr(model.PaymentMethod("CREDIT_CARD")),
-		Status:        model.OrderStatusPendingPayment,
-		CreatedAt:     gofakeit.Date(),
-	}
+	order := getMockedPayOrder(orderUUID, model.OrderStatusPendingPayment)
 
-	s.orderRepository.On("GetOrder", s.ctx, orderUUID).Return(order, nil).Once()
-	s.paymentClient.On("PayOrder", s.ctx, order.UserUUID, orderUUID, paymentMethod).Return("", expectedErr).Once()
+	orderRepository := mocks.NewOrderRepository(t)
+	inventoryClient := clientMocks.NewInventoryClient(t)
+	paymentClient := clientMocks.NewPaymentClient(t)
 
-	resp, err := s.service.PayOrder(s.ctx, orderUUID, paymentMethod)
-	s.Error(err)
-	s.Equal(err, expectedErr)
-	s.Empty(resp)
+	orderService := NewService(
+		orderRepository,
+		inventoryClient,
+		paymentClient,
+	)
+
+	orderRepository.On("GetOrder", ctx, orderUUID).Return(order, nil).Once()
+	paymentClient.On("PayOrder", ctx, order.UserUUID, orderUUID, paymentMethod).Return("", expectedErr).Once()
+
+	resp, err := orderService.PayOrder(ctx, orderUUID, paymentMethod)
+	assert.Error(t, err)
+	assert.Equal(t, err, expectedErr)
+	assert.Empty(t, resp)
 }
 
-func (s *ServiceSuite) TestPayOrderInternalErr() {
+func TestPayOrderInternalErr(t *testing.T) {
+	ctx := context.Background()
 	orderUUID := gofakeit.UUID()
 	paymentMethod := "CREDIT_CARD"
 	expectedErr := model.ErrPaymentInternalError
 
-	order := model.OrderData{
-		UUID:          orderUUID,
-		UserUUID:      gofakeit.UUID(),
-		PartUuids:     []string{gofakeit.UUID()},
-		TotalPrice:    gofakeit.Price(100, 1000),
-		PaymentMethod: lo.ToPtr(model.PaymentMethod("CREDIT_CARD")),
-		Status:        model.OrderStatusPendingPayment,
-		CreatedAt:     gofakeit.Date(),
-	}
+	order := getMockedPayOrder(orderUUID, model.OrderStatusPendingPayment)
 
-	s.orderRepository.On("GetOrder", s.ctx, orderUUID).Return(order, nil).Once()
-	s.paymentClient.On("PayOrder", s.ctx, order.UserUUID, orderUUID, paymentMethod).Return("", expectedErr).Once()
+	orderRepository := mocks.NewOrderRepository(t)
+	inventoryClient := clientMocks.NewInventoryClient(t)
+	paymentClient := clientMocks.NewPaymentClient(t)
 
-	resp, err := s.service.PayOrder(s.ctx, orderUUID, paymentMethod)
-	s.Error(err)
-	s.Equal(err, expectedErr)
-	s.Empty(resp)
+	orderService := NewService(
+		orderRepository,
+		inventoryClient,
+		paymentClient,
+	)
+
+	orderRepository.On("GetOrder", ctx, orderUUID).Return(order, nil).Once()
+	paymentClient.On("PayOrder", ctx, order.UserUUID, orderUUID, paymentMethod).Return("", expectedErr).Once()
+
+	resp, err := orderService.PayOrder(ctx, orderUUID, paymentMethod)
+	assert.Error(t, err)
+	assert.Equal(t, err, expectedErr)
+	assert.Empty(t, resp)
 }
 
-func (s *ServiceSuite) TestPayOrderNotFoundErr() {
+func TestPayOrderNotFoundErr(t *testing.T) {
+	ctx := context.Background()
 	orderUUID := gofakeit.UUID()
 	paymentMethod := "CREDIT_CARD"
 	expectedErr := model.ErrPaymentNotFound
 
-	order := model.OrderData{
-		UUID:          orderUUID,
-		UserUUID:      gofakeit.UUID(),
-		PartUuids:     []string{gofakeit.UUID()},
-		TotalPrice:    gofakeit.Price(100, 1000),
-		PaymentMethod: lo.ToPtr(model.PaymentMethod("CREDIT_CARD")),
-		Status:        model.OrderStatusPendingPayment,
-		CreatedAt:     gofakeit.Date(),
-	}
+	order := getMockedPayOrder(orderUUID, model.OrderStatusPendingPayment)
 
-	s.orderRepository.On("GetOrder", s.ctx, orderUUID).Return(order, nil).Once()
-	s.paymentClient.On("PayOrder", s.ctx, order.UserUUID, orderUUID, paymentMethod).Return("", expectedErr).Once()
+	orderRepository := mocks.NewOrderRepository(t)
+	inventoryClient := clientMocks.NewInventoryClient(t)
+	paymentClient := clientMocks.NewPaymentClient(t)
 
-	resp, err := s.service.PayOrder(s.ctx, orderUUID, paymentMethod)
-	s.Error(err)
-	s.Equal(err, expectedErr)
-	s.Empty(resp)
+	orderService := NewService(
+		orderRepository,
+		inventoryClient,
+		paymentClient,
+	)
+
+	orderRepository.On("GetOrder", ctx, orderUUID).Return(order, nil).Once()
+	paymentClient.On("PayOrder", ctx, order.UserUUID, orderUUID, paymentMethod).Return("", expectedErr).Once()
+
+	resp, err := orderService.PayOrder(ctx, orderUUID, paymentMethod)
+	assert.Error(t, err)
+	assert.Equal(t, err, expectedErr)
+	assert.Empty(t, resp)
 }
 
-func (s *ServiceSuite) TestPayOrderConflictOrderStatusPaidErr() {
+func TestPayOrderConflictOrderStatusPaidErr(t *testing.T) {
+	ctx := context.Background()
 	orderUUID := gofakeit.UUID()
 	paymentMethod := "CREDIT_CARD"
 	expectedErr := model.ErrPaymentConflict
 
-	order := model.OrderData{
-		UUID:          orderUUID,
-		UserUUID:      gofakeit.UUID(),
-		PartUuids:     []string{gofakeit.UUID()},
-		TotalPrice:    gofakeit.Price(100, 1000),
-		PaymentMethod: lo.ToPtr(model.PaymentMethod("CREDIT_CARD")),
-		Status:        model.OrderStatusPaid,
-		CreatedAt:     gofakeit.Date(),
-	}
+	order := getMockedPayOrder(orderUUID, model.OrderStatusPaid)
 
-	s.orderRepository.On("GetOrder", s.ctx, orderUUID).Return(order, nil).Once()
+	orderRepository := mocks.NewOrderRepository(t)
+	inventoryClient := clientMocks.NewInventoryClient(t)
+	paymentClient := clientMocks.NewPaymentClient(t)
 
-	resp, err := s.service.PayOrder(s.ctx, orderUUID, paymentMethod)
-	s.Error(err)
-	s.Equal(err, expectedErr)
-	s.Empty(resp)
+	orderService := NewService(
+		orderRepository,
+		inventoryClient,
+		paymentClient,
+	)
+
+	orderRepository.On("GetOrder", ctx, orderUUID).Return(order, nil).Once()
+
+	resp, err := orderService.PayOrder(ctx, orderUUID, paymentMethod)
+	assert.Error(t, err)
+	assert.Equal(t, err, expectedErr)
+	assert.Empty(t, resp)
 }
 
-func (s *ServiceSuite) TestPayOrderConflictOrderStatusCanceledErr() {
+func TestPayOrderConflictOrderStatusCanceledErr(t *testing.T) {
+	ctx := context.Background()
 	orderUUID := gofakeit.UUID()
 	paymentMethod := "CREDIT_CARD"
 	expectedErr := model.ErrPaymentConflict
 
-	order := model.OrderData{
-		UUID:          orderUUID,
-		UserUUID:      gofakeit.UUID(),
-		PartUuids:     []string{gofakeit.UUID()},
-		TotalPrice:    gofakeit.Price(100, 1000),
-		PaymentMethod: lo.ToPtr(model.PaymentMethod("CREDIT_CARD")),
-		Status:        model.OrderStatusCanceled,
-		CreatedAt:     gofakeit.Date(),
-	}
+	order := getMockedPayOrder(orderUUID, model.OrderStatusCanceled)
 
-	s.orderRepository.On("GetOrder", s.ctx, orderUUID).Return(order, nil).Once()
+	orderRepository := mocks.NewOrderRepository(t)
+	inventoryClient := clientMocks.NewInventoryClient(t)
+	paymentClient := clientMocks.NewPaymentClient(t)
 
-	resp, err := s.service.PayOrder(s.ctx, orderUUID, paymentMethod)
-	s.Error(err)
-	s.Equal(err, expectedErr)
-	s.Empty(resp)
+	orderService := NewService(
+		orderRepository,
+		inventoryClient,
+		paymentClient,
+	)
+
+	orderRepository.On("GetOrder", ctx, orderUUID).Return(order, nil).Once()
+
+	resp, err := orderService.PayOrder(ctx, orderUUID, paymentMethod)
+	assert.Error(t, err)
+	assert.Equal(t, err, expectedErr)
+	assert.Empty(t, resp)
 }
 
-func (s *ServiceSuite) TestPayOrderConflictOrderStatusUnknownErr() {
+func TestPayOrderConflictOrderStatusUnknownErr(t *testing.T) {
+	ctx := context.Background()
 	orderUUID := gofakeit.UUID()
 	paymentMethod := "CREDIT_CARD"
 	expectedErr := model.ErrPaymentInternalError
 
-	order := model.OrderData{
-		UUID:          orderUUID,
-		UserUUID:      gofakeit.UUID(),
-		PartUuids:     []string{gofakeit.UUID()},
-		TotalPrice:    gofakeit.Price(100, 1000),
-		PaymentMethod: lo.ToPtr(model.PaymentMethod("CREDIT_CARD")),
-		Status:        "UNKNOWN",
-		CreatedAt:     gofakeit.Date(),
-	}
+	order := getMockedPayOrder(orderUUID, "UNKNOWN")
 
-	s.orderRepository.On("GetOrder", s.ctx, orderUUID).Return(order, nil).Once()
+	orderRepository := mocks.NewOrderRepository(t)
+	inventoryClient := clientMocks.NewInventoryClient(t)
+	paymentClient := clientMocks.NewPaymentClient(t)
 
-	resp, err := s.service.PayOrder(s.ctx, orderUUID, paymentMethod)
-	s.Error(err)
-	s.Equal(err, expectedErr)
-	s.Empty(resp)
+	orderService := NewService(
+		orderRepository,
+		inventoryClient,
+		paymentClient,
+	)
+
+	orderRepository.On("GetOrder", ctx, orderUUID).Return(order, nil).Once()
+
+	resp, err := orderService.PayOrder(ctx, orderUUID, paymentMethod)
+	assert.Error(t, err)
+	assert.Equal(t, err, expectedErr)
+	assert.Empty(t, resp)
 }
 
-func (s *ServiceSuite) TestPayOrderUpdateErr() {
+func TestPayOrderUpdateErr(t *testing.T) {
+	ctx := context.Background()
 	orderUUID := gofakeit.UUID()
 	paymentMethod := "CREDIT_CARD"
 	transactionUUID := gofakeit.UUID()
 	expectedErr := model.ErrOrderNotFound
 
-	order := model.OrderData{
-		UUID:          orderUUID,
-		UserUUID:      gofakeit.UUID(),
-		PartUuids:     []string{gofakeit.UUID()},
-		TotalPrice:    gofakeit.Price(100, 1000),
-		PaymentMethod: lo.ToPtr(model.PaymentMethod("CREDIT_CARD")),
-		Status:        model.OrderStatusPendingPayment,
-		CreatedAt:     gofakeit.Date(),
-	}
+	order := getMockedPayOrder(orderUUID, model.OrderStatusPendingPayment)
 
 	orderInfo := model.OrderUpdateInfo{
 		Status:          lo.ToPtr(model.OrderStatusPaid),
@@ -214,11 +244,33 @@ func (s *ServiceSuite) TestPayOrderUpdateErr() {
 		TransactionUUID: lo.ToPtr(transactionUUID),
 	}
 
-	s.orderRepository.On("GetOrder", s.ctx, orderUUID).Return(order, nil).Once()
-	s.paymentClient.On("PayOrder", s.ctx, order.UserUUID, orderUUID, paymentMethod).Return(transactionUUID, nil).Once()
-	s.orderRepository.On("UpdateOrder", s.ctx, orderUUID, orderInfo).Return(expectedErr).Once()
+	orderRepository := mocks.NewOrderRepository(t)
+	inventoryClient := clientMocks.NewInventoryClient(t)
+	paymentClient := clientMocks.NewPaymentClient(t)
 
-	_, err := s.service.PayOrder(s.ctx, orderUUID, paymentMethod)
-	s.Error(err)
-	s.Equal(err, expectedErr)
+	orderService := NewService(
+		orderRepository,
+		inventoryClient,
+		paymentClient,
+	)
+
+	orderRepository.On("GetOrder", ctx, orderUUID).Return(order, nil).Once()
+	paymentClient.On("PayOrder", ctx, order.UserUUID, orderUUID, paymentMethod).Return(transactionUUID, nil).Once()
+	orderRepository.On("UpdateOrder", ctx, orderUUID, orderInfo).Return(expectedErr).Once()
+
+	_, err := orderService.PayOrder(ctx, orderUUID, paymentMethod)
+	assert.Error(t, err)
+	assert.Equal(t, err, expectedErr)
+}
+
+func getMockedPayOrder(orderUUID string, status model.OrderStatus) model.OrderData {
+	return model.OrderData{
+		UUID:          orderUUID,
+		UserUUID:      gofakeit.UUID(),
+		PartUuids:     []string{gofakeit.UUID()},
+		TotalPrice:    gofakeit.Price(100, 1000),
+		PaymentMethod: lo.ToPtr(model.PaymentMethod("CREDIT_CARD")),
+		Status:        status,
+		CreatedAt:     gofakeit.Date(),
+	}
 }

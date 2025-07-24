@@ -81,9 +81,9 @@ func (_c *InventoryRepository_GetPart_Call) RunAndReturn(run func(context.Contex
 	return _c
 }
 
-// InitParts provides a mock function with no fields
-func (_m *InventoryRepository) InitParts() {
-	_m.Called()
+// InitParts provides a mock function with given fields: ctx
+func (_m *InventoryRepository) InitParts(ctx context.Context) {
+	_m.Called(ctx)
 }
 
 // InventoryRepository_InitParts_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'InitParts'
@@ -92,13 +92,14 @@ type InventoryRepository_InitParts_Call struct {
 }
 
 // InitParts is a helper method to define mock.On call
-func (_e *InventoryRepository_Expecter) InitParts() *InventoryRepository_InitParts_Call {
-	return &InventoryRepository_InitParts_Call{Call: _e.mock.On("InitParts")}
+//   - ctx context.Context
+func (_e *InventoryRepository_Expecter) InitParts(ctx interface{}) *InventoryRepository_InitParts_Call {
+	return &InventoryRepository_InitParts_Call{Call: _e.mock.On("InitParts", ctx)}
 }
 
-func (_c *InventoryRepository_InitParts_Call) Run(run func()) *InventoryRepository_InitParts_Call {
+func (_c *InventoryRepository_InitParts_Call) Run(run func(ctx context.Context)) *InventoryRepository_InitParts_Call {
 	_c.Call.Run(func(args mock.Arguments) {
-		run()
+		run(args[0].(context.Context))
 	})
 	return _c
 }
@@ -108,7 +109,7 @@ func (_c *InventoryRepository_InitParts_Call) Return() *InventoryRepository_Init
 	return _c
 }
 
-func (_c *InventoryRepository_InitParts_Call) RunAndReturn(run func()) *InventoryRepository_InitParts_Call {
+func (_c *InventoryRepository_InitParts_Call) RunAndReturn(run func(context.Context)) *InventoryRepository_InitParts_Call {
 	_c.Run(run)
 	return _c
 }

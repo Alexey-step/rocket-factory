@@ -17,9 +17,6 @@ func (a *api) PayOrder(ctx context.Context, req *paymentV1.PayOrderRequest) (*pa
 		if errors.Is(err, model.ErrPaymentInternalError) {
 			return nil, status.Errorf(codes.Internal, "Payment service error: %v", err)
 		}
-		if errors.Is(err, context.DeadlineExceeded) || errors.Is(err, context.Canceled) {
-			return nil, status.Errorf(codes.Unavailable, "Paymnent service timeout")
-		}
 		return nil, err
 	}
 
