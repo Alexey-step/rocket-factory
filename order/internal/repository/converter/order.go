@@ -20,3 +20,10 @@ func OrderDataToModel(order repoModel.OrderData) model.OrderData {
 		UpdatedAt:       order.UpdatedAt,
 	}
 }
+
+func OrderCreateInfoToModel(orderCreateInfo repoModel.OrderCreationInfo) model.OrderCreationInfo {
+	return model.OrderCreationInfo{
+		OrderUUID:  orderCreateInfo.OrderUUID,
+		TotalPrice: orderCreateInfo.TotalPrice,
+	}
+}

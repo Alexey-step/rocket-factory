@@ -14,7 +14,7 @@ type Part struct {
 	Dimensions    Dimensions
 	Manufacturer  Manufacturer
 	Tags          []string
-	Metadata      Metadata
+	Metadata      map[string]Metadata
 	CreatedAt     time.Time
 	UpdatedAt     *time.Time
 }

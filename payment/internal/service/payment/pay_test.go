@@ -1,14 +1,28 @@
 package payment
 
-import "github.com/brianvoe/gofakeit/v7"
+import (
+	"context"
+	"testing"
 
-func (s *ServiceSuite) TestPayOrder() {
+	"github.com/brianvoe/gofakeit/v7"
+	"github.com/google/uuid"
+	"github.com/stretchr/testify/assert"
+)
+
+func TestPayOrder(t *testing.T) {
+	ctx := context.Background()
 	var (
 		orderUUID     = gofakeit.UUID()
 		userUUID      = gofakeit.UUID()
 		paymentMethod = gofakeit.RandomString([]string{"CARD", "SBP", "CREDIT_CARD"})
 	)
-	transactionUUID, err := s.service.PayOrder(s.ctx, orderUUID, userUUID, paymentMethod)
-	s.NoError(err)
-	s.NotEmpty(transactionUUID)
+
+	paymentService := NewService()
+
+	transactionUUID, err := paymentService.PayOrder(ctx, orderUUID, userUUID, paymentMethod)
+	assert.NoError(t, err)
+	assert.NotEmpty(t, transactionUUID)
+	parsed, err := uuid.Parse(transactionUUID)
+	assert.NoError(t, err)
+	assert.NotEmpty(t, parsed)
 }

@@ -13,6 +13,9 @@ import (
 
 	"github.com/go-chi/chi/v5"
 	"github.com/go-chi/chi/v5/middleware"
+	"github.com/jackc/pgx/v5/pgxpool"
+	"github.com/jackc/pgx/v5/stdlib"
+	"github.com/joho/godotenv"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/credentials/insecure"
 
@@ -20,6 +23,7 @@ import (
 	inventoryV1Client "github.com/Alexey-step/rocket-factory/order/internal/client/grpc/inventory/v1"
 	paymentV1Client "github.com/Alexey-step/rocket-factory/order/internal/client/grpc/payment/v1"
 	customMiddleware "github.com/Alexey-step/rocket-factory/order/internal/middleware"
+	"github.com/Alexey-step/rocket-factory/order/internal/migrator"
 	orderRepository "github.com/Alexey-step/rocket-factory/order/internal/repository/order"
 	orderService "github.com/Alexey-step/rocket-factory/order/internal/service/order"
 	orderV1 "github.com/Alexey-step/rocket-factory/shared/pkg/openapi/order/v1"
@@ -37,6 +41,47 @@ const (
 )
 
 func main() {
+	ctx := context.Background()
+
+	err := godotenv.Load(".env")
+	if err != nil {
+		log.Printf("faild to load from .env file: %v\n", err)
+		return
+	}
+
+	dbURI := os.Getenv("DB_URI")
+
+	// создаем соединение с базой данных
+	pool, err := pgxpool.New(ctx, dbURI)
+	if err != nil {
+		log.Printf("failed to connect to database: %v\n", err)
+		return
+	}
+	defer pool.Close()
+
+	// Проверяем соединение с базой данных
+	err = pool.Ping(ctx)
+	if err != nil {
+		log.Printf("failed to ping database: %v\n", err)
+		return
+	}
+
+	cfg, err := pgxpool.ParseConfig(dbURI)
+	if err != nil {
+		log.Printf("failed to parse db config: %v\n", err)
+		return
+	}
+
+	// Инициализируем миграцию базы данных
+	migrationsDir := os.Getenv("MIGRATIONS_DIR")
+	migratorRunning := migrator.NewMigrator(stdlib.OpenDB(*cfg.ConnConfig), migrationsDir)
+
+	err = migratorRunning.Up()
+	if err != nil {
+		log.Printf("failed to migrate db: %v\n", err)
+		return
+	}
+
 	// Подключение к gRPC Inventory-сервису
 	inventoryConn, err := grpc.NewClient(
 		grpcInventory,
@@ -60,7 +105,7 @@ func main() {
 
 	paymentClient := paymentV1Client.NewClient(payment_v1.NewPaymentServiceClient(paymentConn))
 
-	repo := orderRepository.NewOrderRepository()
+	repo := orderRepository.NewOrderRepository(pool)
 	service := orderService.NewService(repo, inventoryClient, paymentClient)
 	api := orderV1Api.NewAPI(service)
 
@@ -73,7 +118,7 @@ func main() {
 		if err := paymentConn.Close(); err != nil {
 			log.Printf("failed to close payment connection: %v\n", err)
 		}
-		log.Fatalf("ошибка создания сервера OpenAPI: %v", err)
+		log.Printf("ошибка создания сервера OpenAPI: %v\n", err)
 	}
 
 	defer func() {

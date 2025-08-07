@@ -4,41 +4,49 @@ import (
 	"context"
 	"time"
 
+	sq "github.com/Masterminds/squirrel"
 	"github.com/samber/lo"
 
 	"github.com/Alexey-step/rocket-factory/order/internal/model"
-	repoModel "github.com/Alexey-step/rocket-factory/order/internal/repository/model"
 )
 
-func (r *repository) UpdateOrder(_ context.Context, orderUUID string, orderUpdateInfo model.OrderUpdateInfo) error {
+func (r *repository) UpdateOrder(ctx context.Context, orderUUID string, orderUpdateInfo model.OrderUpdateInfo) error {
 	r.mu.RLock()
 	defer r.mu.RUnlock()
 
-	order, ok := r.orders[orderUUID]
-	if !ok {
-		return model.ErrOrderNotFound
-	}
+	updateBuilder := sq.Update("orders").
+		PlaceholderFormat(sq.Dollar).
+		Set("updated_at", time.Now())
 
 	// Обновляем поля, только если они были установлены в запросе
 	if orderUpdateInfo.Status != nil {
-		order.Status = repoModel.OrderStatus(lo.FromPtr(orderUpdateInfo.Status))
+		updateBuilder = updateBuilder.Set("status", lo.FromPtr(orderUpdateInfo.Status))
 	}
 
 	if orderUpdateInfo.PaymentMethod != nil {
-		order.PaymentMethod = lo.ToPtr(lo.FromPtr(order.PaymentMethod))
+		updateBuilder = updateBuilder.Set("payment_method", lo.ToPtr(lo.FromPtr(orderUpdateInfo.PaymentMethod)))
 	}
 
 	if orderUpdateInfo.TotalPrice != nil {
-		order.TotalPrice = *orderUpdateInfo.TotalPrice
+		updateBuilder = updateBuilder.Set("total_price", *orderUpdateInfo.TotalPrice)
 	}
 
 	if orderUpdateInfo.TransactionUUID != nil {
-		order.TransactionUUID = orderUpdateInfo.TransactionUUID
+		updateBuilder = updateBuilder.Set("transaction_uuid", orderUpdateInfo.TransactionUUID)
 	}
 
-	order.UpdatedAt = lo.ToPtr(time.Now())
+	updateBuilder.Where(sq.Eq{"uuid": orderUUID})
 
-	r.orders[order.UUID] = order
+	query, args, err := updateBuilder.ToSql()
+	if err != nil {
+		return err
+	}
+
+	// Выполняем запрос через пул соединений
+	_, execErr := r.db.Exec(ctx, query, args...)
+	if execErr != nil {
+		return execErr
+	}
 
 	return nil
 }

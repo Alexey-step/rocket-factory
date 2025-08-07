@@ -2,19 +2,28 @@ package part
 
 import (
 	"context"
+	"errors"
+
+	"go.mongodb.org/mongo-driver/bson"
+	"go.mongodb.org/mongo-driver/mongo"
 
 	"github.com/Alexey-step/rocket-factory/inventory/internal/model"
-	repoConverter "github.com/Alexey-step/rocket-factory/inventory/internal/repository/converter"
+	"github.com/Alexey-step/rocket-factory/inventory/internal/repository/converter"
+	repoModel "github.com/Alexey-step/rocket-factory/inventory/internal/repository/model"
 )
 
-func (r *repository) GetPart(_ context.Context, orderUUID string) (model.Part, error) {
+func (r *repository) GetPart(ctx context.Context, orderUUID string) (model.Part, error) {
 	r.mu.RLock()
 	defer r.mu.RUnlock()
 
-	repoPart, ok := r.data[orderUUID]
-	if !ok {
-		return model.Part{}, model.ErrPartNotFound
+	var part repoModel.Part
+	err := r.collection.FindOne(ctx, bson.M{"uuid": orderUUID}).Decode(&part)
+	if err != nil {
+		if errors.Is(err, mongo.ErrNoDocuments) {
+			return model.Part{}, model.ErrPartNotFound
+		}
+		return model.Part{}, err
 	}
 
-	return repoConverter.PartToModel(repoPart), nil
+	return converter.PartToModel(part), nil
 }

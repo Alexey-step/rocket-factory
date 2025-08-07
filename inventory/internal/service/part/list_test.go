@@ -1,15 +1,81 @@
 package part
 
 import (
+	"context"
+	"testing"
 	"time"
 
 	"github.com/brianvoe/gofakeit/v7"
 	"github.com/samber/lo"
+	"github.com/stretchr/testify/assert"
 
 	"github.com/Alexey-step/rocket-factory/inventory/internal/model"
+	"github.com/Alexey-step/rocket-factory/inventory/internal/repository/mocks"
 )
 
-func (s *ServiceSuite) TestListPartsRepoSuccess() {
+func TestListPartsRepoSuccess(t *testing.T) {
+	ctx := context.Background()
+	filters := getMockFilters()
+	part := getMockRepoPart()
+
+	expectedParts := []model.Part{part}
+
+	inventoryRepository := mocks.NewInventoryRepository(t)
+	inventoryService := NewService(inventoryRepository)
+
+	inventoryRepository.On("ListParts", ctx, filters).Return(expectedParts, nil)
+
+	res, err := inventoryService.ListParts(ctx, filters)
+	assert.NoError(t, err)
+	assert.Equal(t, expectedParts, res)
+}
+
+func TestListPartsRepoError(t *testing.T) {
+	ctx := context.Background()
+	repoErr := gofakeit.Error()
+
+	partsUUIDs := []string{gofakeit.UUID(), gofakeit.UUID()}
+	partsNames := []string{gofakeit.Name(), gofakeit.Name()}
+	partsCategories := []model.Category{"UNKNOWN", "ENGINE", "FUEL", "PORTHOLE", "WING"}
+	manufactureCountries := []string{gofakeit.Country(), gofakeit.Country()}
+	tags := []string{gofakeit.Word(), gofakeit.Word()}
+
+	filter := model.PartsFilter{
+		Uuids:                 partsUUIDs,
+		Names:                 partsNames,
+		Categories:            partsCategories,
+		ManufacturerCountries: manufactureCountries,
+		Tags:                  tags,
+	}
+
+	inventoryRepository := mocks.NewInventoryRepository(t)
+	inventoryService := NewService(inventoryRepository)
+
+	inventoryRepository.On("ListParts", ctx, filter).Return([]model.Part{}, repoErr)
+
+	res, err := inventoryService.ListParts(ctx, filter)
+	assert.Error(t, err)
+	assert.ErrorIs(t, err, repoErr)
+	assert.Empty(t, res)
+}
+
+func getMockFilters() model.PartsFilter {
+	partsUUIDs := []string{gofakeit.UUID(), gofakeit.UUID()}
+	partsNames := []string{gofakeit.Name(), gofakeit.Name()}
+	partsCategories := []model.Category{"UNKNOWN", "ENGINE", "FUEL", "PORTHOLE", "WING"}
+	manufactureCountries := []string{gofakeit.Country(), gofakeit.Country()}
+	tags := []string{gofakeit.Word(), gofakeit.Word()}
+
+	return model.PartsFilter{
+		Uuids:                 partsUUIDs,
+		Names:                 partsNames,
+		Categories:            partsCategories,
+		ManufacturerCountries: manufactureCountries,
+		Tags:                  tags,
+	}
+}
+
+func getMockRepoPart() model.Part {
 	var (
 		uuid          = gofakeit.UUID()
 		name          = gofakeit.Name()
@@ -28,27 +94,18 @@ func (s *ServiceSuite) TestListPartsRepoSuccess() {
 			Country: gofakeit.Country(),
 			Website: gofakeit.URL(),
 		}
-		metadata = model.Metadata{
-			Int64Value: lo.ToPtr(gofakeit.Int64()),
+		metadata = map[string]model.Metadata{
+			"int64Value":  {Int64Value: lo.ToPtr(gofakeit.Int64())},
+			"stringValue": {StringValue: lo.ToPtr(gofakeit.Word())},
+			"doubleValue": {DoubleValue: lo.ToPtr(gofakeit.Float64())},
+			"boolValue":   {BoolValue: lo.ToPtr(gofakeit.Bool())},
 		}
 		createdAt = time.Now()
 	)
 
-	partsUUIDs := []string{gofakeit.UUID(), gofakeit.UUID()}
-	partsNames := []string{gofakeit.Name(), gofakeit.Name()}
-	partsCategories := []model.Category{"UNKNOWN", "ENGINE", "FUEL", "PORTHOLE", "WING"}
-	manufactureCountries := []string{gofakeit.Country(), gofakeit.Country()}
 	tags := []string{gofakeit.Word(), gofakeit.Word()}
 
-	filter := model.PartsFilter{
-		Uuids:                 partsUUIDs,
-		Names:                 partsNames,
-		Categories:            partsCategories,
-		ManufacturerCountries: manufactureCountries,
-		Tags:                  tags,
-	}
-
-	part := model.Part{
+	return model.Part{
 		UUID:          uuid,
 		Name:          name,
 		Description:   description,
@@ -61,37 +118,4 @@ func (s *ServiceSuite) TestListPartsRepoSuccess() {
 		Metadata:      metadata,
 		CreatedAt:     createdAt,
 	}
-
-	expectedParts := []model.Part{part}
-
-	s.inventoryRepository.On("ListParts", s.ctx, filter).Return(expectedParts, nil)
-
-	res, err := s.service.ListParts(s.ctx, filter)
-	s.NoError(err)
-	s.Equal(expectedParts, res)
-}
-
-func (s *ServiceSuite) TestListPartsRepoError() {
-	repoErr := gofakeit.Error()
-
-	partsUUIDs := []string{gofakeit.UUID(), gofakeit.UUID()}
-	partsNames := []string{gofakeit.Name(), gofakeit.Name()}
-	partsCategories := []model.Category{"UNKNOWN", "ENGINE", "FUEL", "PORTHOLE", "WING"}
-	manufactureCountries := []string{gofakeit.Country(), gofakeit.Country()}
-	tags := []string{gofakeit.Word(), gofakeit.Word()}
-
-	filter := model.PartsFilter{
-		Uuids:                 partsUUIDs,
-		Names:                 partsNames,
-		Categories:            partsCategories,
-		ManufacturerCountries: manufactureCountries,
-		Tags:                  tags,
-	}
-
-	s.inventoryRepository.On("ListParts", s.ctx, filter).Return([]model.Part{}, repoErr)
-
-	res, err := s.service.ListParts(s.ctx, filter)
-	s.Error(err)
-	s.ErrorIs(err, repoErr)
-	s.Empty(res)
 }

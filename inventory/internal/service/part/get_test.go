@@ -1,17 +1,53 @@
 package part
 
 import (
+	"context"
+	"testing"
 	"time"
 
 	"github.com/brianvoe/gofakeit/v7"
 	"github.com/samber/lo"
+	"github.com/stretchr/testify/assert"
 
 	"github.com/Alexey-step/rocket-factory/inventory/internal/model"
+	"github.com/Alexey-step/rocket-factory/inventory/internal/repository/mocks"
 )
 
-func (s *ServiceSuite) TestGetPartRepoSuccess() {
+func TestGetPartRepoSuccess(t *testing.T) {
+	ctx := context.Background()
+	uuid := gofakeit.UUID()
+	part := getRepoMockPart(uuid)
+
+	inventoryRepository := mocks.NewInventoryRepository(t)
+	inventoryService := NewService(inventoryRepository)
+
+	inventoryRepository.On("GetPart", ctx, uuid).Return(part, nil)
+
+	res, err := inventoryService.GetPart(ctx, uuid)
+	assert.NoError(t, err)
+	assert.Equal(t, part, res)
+}
+
+func TestGetPartRepoError(t *testing.T) {
+	ctx := context.Background()
 	var (
-		uuid          = gofakeit.UUID()
+		repoErr = gofakeit.Error()
+		uuid    = gofakeit.UUID()
+	)
+
+	inventoryRepository := mocks.NewInventoryRepository(t)
+	inventoryService := NewService(inventoryRepository)
+
+	inventoryRepository.On("GetPart", ctx, uuid).Return(model.Part{}, repoErr)
+
+	res, err := inventoryService.GetPart(ctx, uuid)
+	assert.Error(t, err)
+	assert.ErrorIs(t, err, repoErr)
+	assert.Empty(t, res)
+}
+
+func getRepoMockPart(uuid string) model.Part {
+	var (
 		name          = gofakeit.Name()
 		description   = gofakeit.Paragraph(3, 5, 5, " ")
 		price         = gofakeit.Price(100, 1000)
@@ -28,8 +64,11 @@ func (s *ServiceSuite) TestGetPartRepoSuccess() {
 			Country: gofakeit.Country(),
 			Website: gofakeit.URL(),
 		}
-		metadata = model.Metadata{
-			Int64Value: lo.ToPtr(gofakeit.Int64()),
+		metadata = map[string]model.Metadata{
+			"int64Value":  {Int64Value: lo.ToPtr(gofakeit.Int64())},
+			"stringValue": {StringValue: lo.ToPtr(gofakeit.Word())},
+			"doubleValue": {DoubleValue: lo.ToPtr(gofakeit.Float64())},
+			"boolValue":   {BoolValue: lo.ToPtr(gofakeit.Bool())},
 		}
 		createdAt = time.Now()
 	)
@@ -53,23 +92,5 @@ func (s *ServiceSuite) TestGetPartRepoSuccess() {
 		CreatedAt:     createdAt,
 	}
 
-	s.inventoryRepository.On("GetPart", s.ctx, uuid).Return(part, nil)
-
-	res, err := s.service.GetPart(s.ctx, uuid)
-	s.NoError(err)
-	s.Equal(part, res)
-}
-
-func (s *ServiceSuite) TestGetPartRepoError() {
-	var (
-		repoErr = gofakeit.Error()
-		uuid    = gofakeit.UUID()
-	)
-
-	s.inventoryRepository.On("GetPart", s.ctx, uuid).Return(model.Part{}, repoErr)
-
-	res, err := s.service.GetPart(s.ctx, uuid)
-	s.Error(err)
-	s.ErrorIs(err, repoErr)
-	s.Empty(res)
+	return part
 }

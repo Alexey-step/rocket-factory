@@ -18,13 +18,7 @@ func (a *api) GetOrder(ctx context.Context, params orderV1.GetOrderParams) (orde
 		if errors.Is(err, model.ErrOrderNotFound) {
 			return nil, status.Errorf(codes.NotFound, "order by this UUID %s not found", params.OrderUUID.String())
 		}
-		if errors.Is(err, context.DeadlineExceeded) || errors.Is(err, context.Canceled) {
-			return nil, status.Errorf(codes.Unavailable, "Order service timeout")
-		}
-		if errors.Is(err, model.ErrOrderInternalError) {
-			return nil, status.Errorf(codes.Internal, "Order service internal error")
-		}
-		return nil, err
+		return nil, status.Errorf(codes.Internal, "Order service internal error")
 	}
 
 	return &orderV1.GetOrderResponse{

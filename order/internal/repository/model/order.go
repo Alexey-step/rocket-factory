@@ -3,15 +3,15 @@ package model
 import "time"
 
 type OrderData struct {
-	UUID            string
-	UserUUID        string
-	PartUuids       []string
-	TotalPrice      float64
-	TransactionUUID *string
-	PaymentMethod   *PaymentMethod
-	Status          OrderStatus
-	CreatedAt       time.Time
-	UpdatedAt       *time.Time
+	UUID            string         `json:"uuid"`
+	UserUUID        string         `json:"user_uuid"`
+	PartUuids       []string       `json:"part_uuids"`
+	TotalPrice      float64        `json:"total_price"`
+	TransactionUUID *string        `json:"transaction_uuid,omitempty"`
+	PaymentMethod   *PaymentMethod `json:"payment_method,omitempty"`
+	Status          OrderStatus    `json:"status"`
+	CreatedAt       time.Time      `json:"created_at"`
+	UpdatedAt       *time.Time     `json:"updated_at,omitempty"`
 }
 
 type OrderUpdateInfo struct {

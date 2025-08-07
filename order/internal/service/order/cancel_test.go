@@ -1,136 +1,190 @@
 package order
 
 import (
+	"context"
+	"testing"
+
 	"github.com/brianvoe/gofakeit/v7"
 	"github.com/samber/lo"
+	"github.com/stretchr/testify/assert"
 
+	clientMocks "github.com/Alexey-step/rocket-factory/order/internal/client/grpc/mocks"
 	"github.com/Alexey-step/rocket-factory/order/internal/model"
+	"github.com/Alexey-step/rocket-factory/order/internal/repository/mocks"
 )
 
-func (s *ServiceSuite) TestCancelOrderSuccess() {
+func TestCancelOrderSuccess(t *testing.T) {
+	ctx := context.Background()
 	orderUUID := gofakeit.UUID()
-
-	order := model.OrderData{
-		UUID:          orderUUID,
-		UserUUID:      gofakeit.UUID(),
-		PartUuids:     []string{gofakeit.UUID()},
-		TotalPrice:    gofakeit.Price(100, 1000),
-		PaymentMethod: lo.ToPtr(model.PaymentMethod("CREDIT_CARD")),
-		Status:        model.OrderStatusPendingPayment,
-		CreatedAt:     gofakeit.Date(),
-	}
+	order := getMockOrderWithStatus(orderUUID, model.OrderStatusPendingPayment)
 
 	orderUpdateInfo := model.OrderUpdateInfo{
 		Status: lo.ToPtr(model.OrderStatusCanceled),
 	}
 
-	s.orderRepository.On("GetOrder", s.ctx, orderUUID).Return(order, nil).Once()
-	s.orderRepository.On("UpdateOrder", s.ctx, orderUUID, orderUpdateInfo).Return(nil).Once()
-	err := s.service.CancelOrder(s.ctx, orderUUID)
-	s.NoError(err)
+	orderRepository := mocks.NewOrderRepository(t)
+	inventoryClient := clientMocks.NewInventoryClient(t)
+	paymentClient := clientMocks.NewPaymentClient(t)
+
+	orderService := NewService(
+		orderRepository,
+		inventoryClient,
+		paymentClient,
+	)
+
+	orderRepository.On("GetOrder", ctx, orderUUID).Return(order, nil).Once()
+	orderRepository.On("UpdateOrder", ctx, orderUUID, orderUpdateInfo).Return(nil).Once()
+	err := orderService.CancelOrder(ctx, orderUUID)
+	assert.NoError(t, err)
 }
 
-func (s *ServiceSuite) TestCancelOrderFail() {
+func TestCancelOrderFail(t *testing.T) {
+	ctx := context.Background()
 	orderUUID := gofakeit.UUID()
 	expectedErr := model.ErrOrderConflict
 
-	order := model.OrderData{
-		UUID:          orderUUID,
-		UserUUID:      gofakeit.UUID(),
-		PartUuids:     []string{gofakeit.UUID()},
-		TotalPrice:    gofakeit.Price(100, 1000),
-		PaymentMethod: lo.ToPtr(model.PaymentMethod("CREDIT_CARD")),
-		Status:        model.OrderStatusPaid,
-		CreatedAt:     gofakeit.Date(),
-	}
+	order := getMockOrderWithStatus(orderUUID, model.OrderStatusPaid)
 
-	s.orderRepository.On("GetOrder", s.ctx, orderUUID).Return(order, nil).Once()
-	err := s.service.CancelOrder(s.ctx, orderUUID)
-	s.Error(err)
-	s.Equal(expectedErr, err)
+	orderRepository := mocks.NewOrderRepository(t)
+	inventoryClient := clientMocks.NewInventoryClient(t)
+	paymentClient := clientMocks.NewPaymentClient(t)
+
+	orderService := NewService(
+		orderRepository,
+		inventoryClient,
+		paymentClient,
+	)
+
+	orderRepository.On("GetOrder", ctx, orderUUID).Return(order, nil).Once()
+	err := orderService.CancelOrder(ctx, orderUUID)
+	assert.Error(t, err)
+	assert.Equal(t, expectedErr, err)
 }
 
-func (s *ServiceSuite) TestCancelOrderConflictFail() {
+func TestCancelOrderConflictFail(t *testing.T) {
+	ctx := context.Background()
 	orderUUID := gofakeit.UUID()
 	expectedErr := model.ErrOrderConflict
 
-	order := model.OrderData{
-		UUID:          orderUUID,
-		UserUUID:      gofakeit.UUID(),
-		PartUuids:     []string{gofakeit.UUID()},
-		TotalPrice:    gofakeit.Price(100, 1000),
-		PaymentMethod: lo.ToPtr(model.PaymentMethod("CREDIT_CARD")),
-		Status:        model.OrderStatusCanceled,
-		CreatedAt:     gofakeit.Date(),
-	}
+	order := getMockOrderWithStatus(orderUUID, model.OrderStatusCanceled)
 
-	s.orderRepository.On("GetOrder", s.ctx, orderUUID).Return(order, nil).Once()
-	err := s.service.CancelOrder(s.ctx, orderUUID)
-	s.Error(err)
-	s.Equal(expectedErr, err)
+	orderRepository := mocks.NewOrderRepository(t)
+	inventoryClient := clientMocks.NewInventoryClient(t)
+	paymentClient := clientMocks.NewPaymentClient(t)
+
+	orderService := NewService(
+		orderRepository,
+		inventoryClient,
+		paymentClient,
+	)
+
+	orderRepository.On("GetOrder", ctx, orderUUID).Return(order, nil).Once()
+	err := orderService.CancelOrder(ctx, orderUUID)
+	assert.Error(t, err)
+	assert.Equal(t, expectedErr, err)
 }
 
-func (s *ServiceSuite) TestCancelOrderInternalError() {
+func TestCancelOrderInternalError(t *testing.T) {
+	ctx := context.Background()
 	orderUUID := gofakeit.UUID()
 	expectedErr := model.ErrOrderInternalError
 
-	s.orderRepository.On("GetOrder", s.ctx, orderUUID).Return(model.OrderData{}, expectedErr).Once()
-	err := s.service.CancelOrder(s.ctx, orderUUID)
-	s.Error(err)
-	s.Equal(expectedErr, err)
+	orderRepository := mocks.NewOrderRepository(t)
+	inventoryClient := clientMocks.NewInventoryClient(t)
+	paymentClient := clientMocks.NewPaymentClient(t)
+
+	orderService := NewService(
+		orderRepository,
+		inventoryClient,
+		paymentClient,
+	)
+
+	orderRepository.On("GetOrder", ctx, orderUUID).Return(model.OrderData{}, expectedErr).Once()
+	err := orderService.CancelOrder(ctx, orderUUID)
+	assert.Error(t, err)
+	assert.Equal(t, expectedErr, err)
 }
 
-func (s *ServiceSuite) TestCancelOrderNotFoundFail() {
+func TestCancelOrderNotFoundFail(t *testing.T) {
+	ctx := context.Background()
 	orderUUID := gofakeit.UUID()
 	expectedErr := model.ErrOrderNotFound
 
-	s.orderRepository.On("GetOrder", s.ctx, orderUUID).Return(model.OrderData{}, expectedErr).Once()
-	err := s.service.CancelOrder(s.ctx, orderUUID)
-	s.Error(err)
-	s.Equal(expectedErr, err)
+	orderRepository := mocks.NewOrderRepository(t)
+	inventoryClient := clientMocks.NewInventoryClient(t)
+	paymentClient := clientMocks.NewPaymentClient(t)
+
+	orderService := NewService(
+		orderRepository,
+		inventoryClient,
+		paymentClient,
+	)
+
+	orderRepository.On("GetOrder", ctx, orderUUID).Return(model.OrderData{}, expectedErr).Once()
+	err := orderService.CancelOrder(ctx, orderUUID)
+	assert.Error(t, err)
+	assert.Equal(t, expectedErr, err)
 }
 
-func (s *ServiceSuite) TestCancelOrderUpdateError() {
+func TestCancelOrderUpdateError(t *testing.T) {
+	ctx := context.Background()
 	orderUUID := gofakeit.UUID()
 	expectedErr := model.ErrOrderNotFound
 
-	order := model.OrderData{
-		UUID:          orderUUID,
-		UserUUID:      gofakeit.UUID(),
-		PartUuids:     []string{gofakeit.UUID()},
-		TotalPrice:    gofakeit.Price(100, 1000),
-		PaymentMethod: lo.ToPtr(model.PaymentMethod("CREDIT_CARD")),
-		Status:        model.OrderStatusPendingPayment,
-		CreatedAt:     gofakeit.Date(),
-	}
+	order := getMockOrderWithStatus(orderUUID, model.OrderStatusPendingPayment)
 
 	orderUpdateInfo := model.OrderUpdateInfo{
 		Status: lo.ToPtr(model.OrderStatusCanceled),
 	}
 
-	s.orderRepository.On("GetOrder", s.ctx, orderUUID).Return(order, nil).Once()
-	s.orderRepository.On("UpdateOrder", s.ctx, orderUUID, orderUpdateInfo).Return(expectedErr).Once()
-	err := s.service.CancelOrder(s.ctx, orderUUID)
-	s.Error(err)
-	s.Equal(expectedErr, err)
+	orderRepository := mocks.NewOrderRepository(t)
+	inventoryClient := clientMocks.NewInventoryClient(t)
+	paymentClient := clientMocks.NewPaymentClient(t)
+
+	orderService := NewService(
+		orderRepository,
+		inventoryClient,
+		paymentClient,
+	)
+
+	orderRepository.On("GetOrder", ctx, orderUUID).Return(order, nil).Once()
+	orderRepository.On("UpdateOrder", ctx, orderUUID, orderUpdateInfo).Return(expectedErr).Once()
+	err := orderService.CancelOrder(ctx, orderUUID)
+	assert.Error(t, err)
+	assert.Equal(t, expectedErr, err)
 }
 
-func (s *ServiceSuite) TestCancelOrderInternalErr() {
+func TestCancelOrderInternalErr(t *testing.T) {
+	ctx := context.Background()
 	orderUUID := gofakeit.UUID()
 	expectedErr := model.ErrOrderInternalError
 
-	order := model.OrderData{
+	order := getMockOrderWithStatus(orderUUID, "UNKNOWN_STATUS")
+
+	orderRepository := mocks.NewOrderRepository(t)
+	inventoryClient := clientMocks.NewInventoryClient(t)
+	paymentClient := clientMocks.NewPaymentClient(t)
+
+	orderService := NewService(
+		orderRepository,
+		inventoryClient,
+		paymentClient,
+	)
+
+	orderRepository.On("GetOrder", ctx, orderUUID).Return(order, nil).Once()
+	err := orderService.CancelOrder(ctx, orderUUID)
+	assert.Error(t, err)
+	assert.Equal(t, expectedErr, err)
+}
+
+func getMockOrderWithStatus(orderUUID string, status model.OrderStatus) model.OrderData {
+	return model.OrderData{
 		UUID:          orderUUID,
 		UserUUID:      gofakeit.UUID(),
 		PartUuids:     []string{gofakeit.UUID()},
 		TotalPrice:    gofakeit.Price(100, 1000),
 		PaymentMethod: lo.ToPtr(model.PaymentMethod("CREDIT_CARD")),
-		Status:        "UNKNOWN_STATUS",
+		Status:        status,
 		CreatedAt:     gofakeit.Date(),
 	}
-
-	s.orderRepository.On("GetOrder", s.ctx, orderUUID).Return(order, nil).Once()
-	err := s.service.CancelOrder(s.ctx, orderUUID)
-	s.Error(err)
-	s.Equal(expectedErr, err)
 }
