@@ -1,7 +1,7 @@
 -- +goose UP
-create table orders
+create table if not exists orders
 (
-    id serial primary key,
+    id bigint generated always as identity primary key,
     uuid uuid not null unique default uuid_generate_v4(),
     user_uuid uuid not null,
 	part_uuids uuid[] not null,

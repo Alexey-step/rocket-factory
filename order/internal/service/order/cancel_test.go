@@ -11,6 +11,7 @@ import (
 	clientMocks "github.com/Alexey-step/rocket-factory/order/internal/client/grpc/mocks"
 	"github.com/Alexey-step/rocket-factory/order/internal/model"
 	"github.com/Alexey-step/rocket-factory/order/internal/repository/mocks"
+	"github.com/Alexey-step/rocket-factory/platform/pkg/logger"
 )
 
 func TestCancelOrderSuccess(t *testing.T) {
@@ -42,6 +43,7 @@ func TestCancelOrderFail(t *testing.T) {
 	ctx := context.Background()
 	orderUUID := gofakeit.UUID()
 	expectedErr := model.ErrOrderConflict
+	logger.SetNopLogger()
 
 	order := getMockOrderWithStatus(orderUUID, model.OrderStatusPaid)
 
@@ -65,6 +67,7 @@ func TestCancelOrderConflictFail(t *testing.T) {
 	ctx := context.Background()
 	orderUUID := gofakeit.UUID()
 	expectedErr := model.ErrOrderConflict
+	logger.SetNopLogger()
 
 	order := getMockOrderWithStatus(orderUUID, model.OrderStatusCanceled)
 
@@ -88,6 +91,7 @@ func TestCancelOrderInternalError(t *testing.T) {
 	ctx := context.Background()
 	orderUUID := gofakeit.UUID()
 	expectedErr := model.ErrOrderInternalError
+	logger.SetNopLogger()
 
 	orderRepository := mocks.NewOrderRepository(t)
 	inventoryClient := clientMocks.NewInventoryClient(t)
@@ -109,6 +113,7 @@ func TestCancelOrderNotFoundFail(t *testing.T) {
 	ctx := context.Background()
 	orderUUID := gofakeit.UUID()
 	expectedErr := model.ErrOrderNotFound
+	logger.SetNopLogger()
 
 	orderRepository := mocks.NewOrderRepository(t)
 	inventoryClient := clientMocks.NewInventoryClient(t)
@@ -130,6 +135,7 @@ func TestCancelOrderUpdateError(t *testing.T) {
 	ctx := context.Background()
 	orderUUID := gofakeit.UUID()
 	expectedErr := model.ErrOrderNotFound
+	logger.SetNopLogger()
 
 	order := getMockOrderWithStatus(orderUUID, model.OrderStatusPendingPayment)
 
@@ -158,6 +164,7 @@ func TestCancelOrderInternalErr(t *testing.T) {
 	ctx := context.Background()
 	orderUUID := gofakeit.UUID()
 	expectedErr := model.ErrOrderInternalError
+	logger.SetNopLogger()
 
 	order := getMockOrderWithStatus(orderUUID, "UNKNOWN_STATUS")
 

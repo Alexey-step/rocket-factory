@@ -3,16 +3,27 @@ package order
 import (
 	"context"
 
+	"go.uber.org/zap"
+
 	"github.com/Alexey-step/rocket-factory/order/internal/model"
+	"github.com/Alexey-step/rocket-factory/platform/pkg/logger"
 )
 
 func (s *service) CancelOrder(ctx context.Context, userUUID string) error {
 	order, err := s.orderRepository.GetOrder(ctx, userUUID)
 	if err != nil {
+		logger.Error(ctx, "failed to get order when canceling",
+			zap.String("order_uuid", userUUID),
+			zap.Error(err),
+		)
 		return err
 	}
 
 	if err = statusToError(order.Status); err != nil {
+		logger.Error(ctx, "failed to canceling order",
+			zap.String("order_uuid", userUUID),
+			zap.Error(err),
+		)
 		return err
 	}
 
@@ -21,6 +32,10 @@ func (s *service) CancelOrder(ctx context.Context, userUUID string) error {
 		Status: &status,
 	})
 	if err != nil {
+		logger.Error(ctx, "failed to update order when canceling",
+			zap.String("order_uuid", userUUID),
+			zap.Error(err),
+		)
 		return err
 	}
 

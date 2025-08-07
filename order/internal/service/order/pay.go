@@ -4,22 +4,36 @@ import (
 	"context"
 
 	"github.com/samber/lo"
+	"go.uber.org/zap"
 
 	"github.com/Alexey-step/rocket-factory/order/internal/model"
+	"github.com/Alexey-step/rocket-factory/platform/pkg/logger"
 )
 
 func (s *service) PayOrder(ctx context.Context, orderUUID, paymentMethod string) (transactionUUID string, err error) {
 	order, err := s.orderRepository.GetOrder(ctx, orderUUID)
 	if err != nil {
+		logger.Error(ctx, "failed to get order when paying",
+			zap.String("order_uuid", orderUUID),
+			zap.String("payment_method", paymentMethod),
+			zap.Error(err))
 		return "", err
 	}
 
 	if resp, ok := canPayOrder(order); ok {
+		logger.Error(ctx, "failed to pay order",
+			zap.String("order_uuid", orderUUID),
+			zap.String("payment_method", paymentMethod),
+			zap.Error(resp))
 		return "", resp
 	}
 
 	transUUID, err := s.paymentClient.PayOrder(ctx, order.UserUUID, orderUUID, paymentMethod)
 	if err != nil {
+		logger.Error(ctx, "failed to pay order",
+			zap.String("order_uuid", orderUUID),
+			zap.String("payment_method", paymentMethod),
+			zap.Error(err))
 		return "", err
 	}
 
@@ -31,6 +45,10 @@ func (s *service) PayOrder(ctx context.Context, orderUUID, paymentMethod string)
 	})
 
 	if updateErr != nil {
+		logger.Error(ctx, "failed to update order after payment",
+			zap.String("order_uuid", orderUUID),
+			zap.String("payment_method", paymentMethod),
+			zap.Error(updateErr))
 		return "", updateErr
 	}
 

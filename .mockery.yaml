@@ -16,6 +16,10 @@ packages:
     config:
       include-regex: ".*Repository"
 
+  github.com/Alexey-step/rocket-factory/inventory/internal/config:
+    config:
+      include-regex: ".*Config"
+
   github.com/Alexey-step/rocket-factory/payment/internal/service:
     config:
       include-regex: ".*Service"
@@ -23,6 +27,11 @@ packages:
   github.com/Alexey-step/rocket-factory/payment/internal/repository:
     config:
       include-regex: ".*Repository"
+
+  github.com/Alexey-step/rocket-factory/payment/internal/config:
+    config:
+      include-regex: ".*Config"
+
   github.com/Alexey-step/rocket-factory/order/internal/service:
     config:
       include-regex: ".*Service"
@@ -34,3 +43,7 @@ packages:
   github.com/Alexey-step/rocket-factory/order/internal/client/grpc:
     config:
       include-regex: ".*Client"
+
+  github.com/Alexey-step/rocket-factory/order/internal/config:
+    config:
+      include-regex: ".*Config"
