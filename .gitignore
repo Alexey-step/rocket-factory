@@ -33,4 +33,3 @@ node_modules
 inventory.env.template
 order.env.template
 payment.env.template
-generate-env.sh
