@@ -11,9 +11,6 @@ import (
 )
 
 func (r *repository) GetOrder(ctx context.Context, orderUUID string) (model.OrderData, error) {
-	r.mu.RLock()
-	defer r.mu.RUnlock()
-
 	query, args, err := sq.Select(
 		"uuid",
 		"user_uuid",
@@ -32,27 +29,20 @@ func (r *repository) GetOrder(ctx context.Context, orderUUID string) (model.Orde
 		return model.OrderData{}, err
 	}
 
-	rows, err := r.db.Query(ctx, query, args...)
+	var outOrder repoModel.OrderData
+	err = r.db.QueryRow(ctx, query, args...).Scan(
+		&outOrder.UUID,
+		&outOrder.UserUUID,
+		&outOrder.PartUuids,
+		&outOrder.TotalPrice,
+		&outOrder.TransactionUUID,
+		&outOrder.PaymentMethod,
+		&outOrder.Status,
+		&outOrder.CreatedAt,
+		&outOrder.UpdatedAt,
+	)
 	if err != nil {
 		return model.OrderData{}, err
-	}
-
-	var outOrder repoModel.OrderData
-	for rows.Next() {
-		err = rows.Scan(
-			&outOrder.UUID,
-			&outOrder.UserUUID,
-			&outOrder.PartUuids,
-			&outOrder.TotalPrice,
-			&outOrder.TransactionUUID,
-			&outOrder.PaymentMethod,
-			&outOrder.Status,
-			&outOrder.CreatedAt,
-			&outOrder.UpdatedAt,
-		)
-		if err != nil {
-			return model.OrderData{}, err
-		}
 	}
 
 	return converter.OrderDataToModel(outOrder), nil

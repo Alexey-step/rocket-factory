@@ -28,3 +28,8 @@
 node_modules
 /shared/api/bundles/
 /coverage/
+
+.env.template
+inventory.env.template
+order.env.template
+payment.env.template

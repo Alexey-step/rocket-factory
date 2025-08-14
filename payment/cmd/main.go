@@ -1,61 +1,54 @@
 package main
 
 import (
-	"log"
-	"net"
-	"os"
+	"context"
+	"fmt"
 	"os/signal"
 	"syscall"
+	"time"
 
-	"google.golang.org/grpc"
-	"google.golang.org/grpc/reflection"
+	"go.uber.org/zap"
 
-	paymentV1Api "github.com/Alexey-step/rocket-factory/payment/internal/api/payment/v1"
-	interceptor "github.com/Alexey-step/rocket-factory/payment/internal/interceptor"
-	paymentService "github.com/Alexey-step/rocket-factory/payment/internal/service/payment"
-	paymentV1 "github.com/Alexey-step/rocket-factory/shared/pkg/proto/payment/v1"
+	"github.com/Alexey-step/rocket-factory/payment/internal/app"
+	"github.com/Alexey-step/rocket-factory/payment/internal/config"
+	"github.com/Alexey-step/rocket-factory/platform/pkg/closer"
+	"github.com/Alexey-step/rocket-factory/platform/pkg/logger"
 )
 
-const grpcAddr = "localhost:50052"
+const configPath = "./deploy/compose/payment/.env"
 
 func main() {
-	lis, err := net.Listen("tcp", grpcAddr)
+	err := config.Load(configPath)
 	if err != nil {
-		log.Printf("failed to listen: %v\n", err)
-		// return
+		panic(fmt.Errorf("failed to load config: %w", err))
 	}
 
-	defer func() {
-		if err = lis.Close(); err != nil {
-			log.Printf("failed to close listener: %v\n", err)
-		}
-	}()
+	appCtx, appCancel := signal.NotifyContext(context.Background(), syscall.SIGINT, syscall.SIGTERM)
+	defer appCancel()
+	defer gracefulShutdown()
 
-	s := grpc.NewServer(
-		grpc.ChainUnaryInterceptor(
-			interceptor.LoggerInterceptor(),
-		),
-	)
+	closer.Configure(syscall.SIGINT, syscall.SIGTERM)
 
-	service := paymentService.NewService()
-	api := paymentV1Api.NewApi(service)
+	a, err := app.New(appCtx)
+	if err != nil {
+		logger.Error(appCtx, "❌ failed to initialize application",
+			zap.Error(err))
+		return
+	}
 
-	paymentV1.RegisterPaymentServiceServer(s, api)
+	if err := a.Run(appCtx); err != nil {
+		logger.Error(appCtx, "❌ failed to run application",
+			zap.Error(err))
+		return
+	}
+}
 
-	reflection.Register(s)
+func gracefulShutdown() {
+	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
+	defer cancel()
 
-	go func() {
-		log.Printf("🚀 gRPC PaymentService server listening on %s\n", grpcAddr)
-		err = s.Serve(lis)
-		if err != nil {
-			log.Printf("failed to serve: %v\n", err)
-		}
-	}()
-
-	quit := make(chan os.Signal, 1)
-	signal.Notify(quit, syscall.SIGINT, syscall.SIGTERM)
-	<-quit
-	log.Println("🛑Shutting down gRPC server...")
-	s.GracefulStop()
-	log.Println("✅ Server stopped")
+	if err := closer.CloseAll(ctx); err != nil {
+		logger.Error(ctx, "❌ failed to close resources",
+			zap.Error(err))
+	}
 }

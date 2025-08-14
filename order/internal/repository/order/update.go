@@ -11,9 +11,6 @@ import (
 )
 
 func (r *repository) UpdateOrder(ctx context.Context, orderUUID string, orderUpdateInfo model.OrderUpdateInfo) error {
-	r.mu.RLock()
-	defer r.mu.RUnlock()
-
 	updateBuilder := sq.Update("orders").
 		PlaceholderFormat(sq.Dollar).
 		Set("updated_at", time.Now())

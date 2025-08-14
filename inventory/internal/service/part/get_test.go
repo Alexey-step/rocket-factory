@@ -11,6 +11,7 @@ import (
 
 	"github.com/Alexey-step/rocket-factory/inventory/internal/model"
 	"github.com/Alexey-step/rocket-factory/inventory/internal/repository/mocks"
+	"github.com/Alexey-step/rocket-factory/platform/pkg/logger"
 )
 
 func TestGetPartRepoSuccess(t *testing.T) {
@@ -35,6 +36,7 @@ func TestGetPartRepoError(t *testing.T) {
 		uuid    = gofakeit.UUID()
 	)
 
+	logger.SetNopLogger()
 	inventoryRepository := mocks.NewInventoryRepository(t)
 	inventoryService := NewService(inventoryRepository)
 

@@ -2,20 +2,19 @@ package part
 
 import (
 	"context"
-	"sync"
 	"time"
 
 	"go.mongodb.org/mongo-driver/bson"
 	"go.mongodb.org/mongo-driver/mongo"
 	"go.mongodb.org/mongo-driver/mongo/options"
 
+	"github.com/Alexey-step/rocket-factory/inventory/internal/config"
 	def "github.com/Alexey-step/rocket-factory/inventory/internal/repository"
 )
 
 var _ def.InventoryRepository = (*repository)(nil)
 
 type repository struct {
-	mu         sync.RWMutex
 	collection *mongo.Collection
 }
 
@@ -41,7 +40,11 @@ func NewRepository(db *mongo.Database) *repository {
 		collection: collection,
 	}
 
-	s.InitParts(ctx)
+	// Проверяем, нужно ли отключить инициализацию тестовых данных
+	isDisabledPartsInit := config.AppConfig().Mongo.DisabledInitMockParts()
+	if !isDisabledPartsInit {
+		s.InitParts(ctx)
+	}
 
 	return s
 }

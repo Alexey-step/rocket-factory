@@ -13,9 +13,6 @@ import (
 )
 
 func (r *repository) CreateOrder(ctx context.Context, userUUID string, parts []model.Part) (info model.OrderCreationInfo, err error) {
-	r.mu.RLock()
-	defer r.mu.RUnlock()
-
 	var partUUIDs []string
 	var totPrice float64
 	for _, part := range parts {

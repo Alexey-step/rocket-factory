@@ -12,9 +12,6 @@ import (
 )
 
 func (r *repository) ListParts(ctx context.Context, filter model.PartsFilter) ([]model.Part, error) {
-	r.mu.RLock()
-	defer r.mu.RUnlock()
-
 	mongoFilter := buildMongoFilter(filter)
 
 	cursor, err := r.collection.Find(ctx, mongoFilter)
