@@ -64,6 +64,51 @@ func (_c *MongoConfig_DatabaseName_Call) RunAndReturn(run func() string) *MongoC
 	return _c
 }
 
+// DisabledInitMockParts provides a mock function with no fields
+func (_m *MongoConfig) DisabledInitMockParts() bool {
+	ret := _m.Called()
+
+	if len(ret) == 0 {
+		panic("no return value specified for DisabledInitMockParts")
+	}
+
+	var r0 bool
+	if rf, ok := ret.Get(0).(func() bool); ok {
+		r0 = rf()
+	} else {
+		r0 = ret.Get(0).(bool)
+	}
+
+	return r0
+}
+
+// MongoConfig_DisabledInitMockParts_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'DisabledInitMockParts'
+type MongoConfig_DisabledInitMockParts_Call struct {
+	*mock.Call
+}
+
+// DisabledInitMockParts is a helper method to define mock.On call
+func (_e *MongoConfig_Expecter) DisabledInitMockParts() *MongoConfig_DisabledInitMockParts_Call {
+	return &MongoConfig_DisabledInitMockParts_Call{Call: _e.mock.On("DisabledInitMockParts")}
+}
+
+func (_c *MongoConfig_DisabledInitMockParts_Call) Run(run func()) *MongoConfig_DisabledInitMockParts_Call {
+	_c.Call.Run(func(args mock.Arguments) {
+		run()
+	})
+	return _c
+}
+
+func (_c *MongoConfig_DisabledInitMockParts_Call) Return(_a0 bool) *MongoConfig_DisabledInitMockParts_Call {
+	_c.Call.Return(_a0)
+	return _c
+}
+
+func (_c *MongoConfig_DisabledInitMockParts_Call) RunAndReturn(run func() bool) *MongoConfig_DisabledInitMockParts_Call {
+	_c.Call.Return(run)
+	return _c
+}
+
 // URI provides a mock function with no fields
 func (_m *MongoConfig) URI() string {
 	ret := _m.Called()

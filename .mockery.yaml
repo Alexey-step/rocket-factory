@@ -8,6 +8,7 @@ resolve-type-alias: False
 issue-845-fix: True
 
 packages:
+  # Inventory
   github.com/Alexey-step/rocket-factory/inventory/internal/service:
     config:
       include-regex: ".*Service"
@@ -20,6 +21,8 @@ packages:
     config:
       include-regex: ".*Config"
 
+
+  # Payment
   github.com/Alexey-step/rocket-factory/payment/internal/service:
     config:
       include-regex: ".*Service"
@@ -32,6 +35,8 @@ packages:
     config:
       include-regex: ".*Config"
 
+
+  # Order
   github.com/Alexey-step/rocket-factory/order/internal/service:
     config:
       include-regex: ".*Service"
@@ -47,3 +52,27 @@ packages:
   github.com/Alexey-step/rocket-factory/order/internal/config:
     config:
       include-regex: ".*Config"
+
+
+  # Assembly
+  github.com/Alexey-step/rocket-factory/assembly/internal/service:
+    config:
+      include-regex: ".*Service"
+
+  github.com/Alexey-step/rocket-factory/assembly/internal/config:
+    config:
+      include-regex: ".*Config"
+
+
+  # Notofication
+  github.com/Alexey-step/rocket-factory/notification/internal/service:
+    config:
+      include-regex: ".*Service"
+
+  github.com/Alexey-step/rocket-factory/notification/internal/config:
+    config:
+      include-regex: ".*Config"
+
+  github.com/Alexey-step/rocket-factory/notification/internal/client/http:
+    config:
+      include-regex: ".*Client"

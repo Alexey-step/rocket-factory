@@ -7,10 +7,12 @@ import (
 	"github.com/brianvoe/gofakeit/v7"
 	"github.com/samber/lo"
 	"github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/mock"
 
 	clientMocks "github.com/Alexey-step/rocket-factory/order/internal/client/grpc/mocks"
 	"github.com/Alexey-step/rocket-factory/order/internal/model"
 	"github.com/Alexey-step/rocket-factory/order/internal/repository/mocks"
+	orderServiceMocks "github.com/Alexey-step/rocket-factory/order/internal/service/mocks"
 )
 
 func TestPayOrderSuccess(t *testing.T) {
@@ -30,15 +32,18 @@ func TestPayOrderSuccess(t *testing.T) {
 	orderRepository := mocks.NewOrderRepository(t)
 	inventoryClient := clientMocks.NewInventoryClient(t)
 	paymentClient := clientMocks.NewPaymentClient(t)
+	orderProducer := orderServiceMocks.NewOrderProducerService(t)
 
 	orderService := NewService(
 		orderRepository,
 		inventoryClient,
 		paymentClient,
+		orderProducer,
 	)
 
 	orderRepository.On("GetOrder", ctx, orderUUID).Return(order, nil).Once()
 	paymentClient.On("PayOrder", ctx, order.UserUUID, orderUUID, paymentMethod).Return(transactionUUID, nil).Once()
+	orderProducer.On("ProduceOrderPaid", ctx, mock.AnythingOfType("model.OrderPaid")).Return(nil).Once()
 	orderRepository.On("UpdateOrder", ctx, orderUUID, orderInfo).Return(nil).Once()
 
 	resp, err := orderService.PayOrder(ctx, orderUUID, paymentMethod)
@@ -55,11 +60,13 @@ func TestPayOrderFailGetOrder(t *testing.T) {
 	orderRepository := mocks.NewOrderRepository(t)
 	inventoryClient := clientMocks.NewInventoryClient(t)
 	paymentClient := clientMocks.NewPaymentClient(t)
+	orderProducer := orderServiceMocks.NewOrderProducerService(t)
 
 	orderService := NewService(
 		orderRepository,
 		inventoryClient,
 		paymentClient,
+		orderProducer,
 	)
 
 	orderRepository.On("GetOrder", ctx, orderUUID).Return(model.OrderData{}, expectedErr).Once()
@@ -81,11 +88,13 @@ func TestPayOrderFail(t *testing.T) {
 	orderRepository := mocks.NewOrderRepository(t)
 	inventoryClient := clientMocks.NewInventoryClient(t)
 	paymentClient := clientMocks.NewPaymentClient(t)
+	orderProducer := orderServiceMocks.NewOrderProducerService(t)
 
 	orderService := NewService(
 		orderRepository,
 		inventoryClient,
 		paymentClient,
+		orderProducer,
 	)
 
 	orderRepository.On("GetOrder", ctx, orderUUID).Return(order, nil).Once()
@@ -108,11 +117,13 @@ func TestPayOrderInternalErr(t *testing.T) {
 	orderRepository := mocks.NewOrderRepository(t)
 	inventoryClient := clientMocks.NewInventoryClient(t)
 	paymentClient := clientMocks.NewPaymentClient(t)
+	orderProducer := orderServiceMocks.NewOrderProducerService(t)
 
 	orderService := NewService(
 		orderRepository,
 		inventoryClient,
 		paymentClient,
+		orderProducer,
 	)
 
 	orderRepository.On("GetOrder", ctx, orderUUID).Return(order, nil).Once()
@@ -135,11 +146,13 @@ func TestPayOrderNotFoundErr(t *testing.T) {
 	orderRepository := mocks.NewOrderRepository(t)
 	inventoryClient := clientMocks.NewInventoryClient(t)
 	paymentClient := clientMocks.NewPaymentClient(t)
+	orderProducer := orderServiceMocks.NewOrderProducerService(t)
 
 	orderService := NewService(
 		orderRepository,
 		inventoryClient,
 		paymentClient,
+		orderProducer,
 	)
 
 	orderRepository.On("GetOrder", ctx, orderUUID).Return(order, nil).Once()
@@ -162,11 +175,13 @@ func TestPayOrderConflictOrderStatusPaidErr(t *testing.T) {
 	orderRepository := mocks.NewOrderRepository(t)
 	inventoryClient := clientMocks.NewInventoryClient(t)
 	paymentClient := clientMocks.NewPaymentClient(t)
+	orderProducer := orderServiceMocks.NewOrderProducerService(t)
 
 	orderService := NewService(
 		orderRepository,
 		inventoryClient,
 		paymentClient,
+		orderProducer,
 	)
 
 	orderRepository.On("GetOrder", ctx, orderUUID).Return(order, nil).Once()
@@ -188,11 +203,13 @@ func TestPayOrderConflictOrderStatusCanceledErr(t *testing.T) {
 	orderRepository := mocks.NewOrderRepository(t)
 	inventoryClient := clientMocks.NewInventoryClient(t)
 	paymentClient := clientMocks.NewPaymentClient(t)
+	orderProducer := orderServiceMocks.NewOrderProducerService(t)
 
 	orderService := NewService(
 		orderRepository,
 		inventoryClient,
 		paymentClient,
+		orderProducer,
 	)
 
 	orderRepository.On("GetOrder", ctx, orderUUID).Return(order, nil).Once()
@@ -214,11 +231,13 @@ func TestPayOrderConflictOrderStatusUnknownErr(t *testing.T) {
 	orderRepository := mocks.NewOrderRepository(t)
 	inventoryClient := clientMocks.NewInventoryClient(t)
 	paymentClient := clientMocks.NewPaymentClient(t)
+	orderProducer := orderServiceMocks.NewOrderProducerService(t)
 
 	orderService := NewService(
 		orderRepository,
 		inventoryClient,
 		paymentClient,
+		orderProducer,
 	)
 
 	orderRepository.On("GetOrder", ctx, orderUUID).Return(order, nil).Once()
@@ -247,11 +266,13 @@ func TestPayOrderUpdateErr(t *testing.T) {
 	orderRepository := mocks.NewOrderRepository(t)
 	inventoryClient := clientMocks.NewInventoryClient(t)
 	paymentClient := clientMocks.NewPaymentClient(t)
+	orderProducer := orderServiceMocks.NewOrderProducerService(t)
 
 	orderService := NewService(
 		orderRepository,
 		inventoryClient,
 		paymentClient,
+		orderProducer,
 	)
 
 	orderRepository.On("GetOrder", ctx, orderUUID).Return(order, nil).Once()

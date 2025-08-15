@@ -244,6 +244,54 @@ func (_c *OrderService_PayOrder_Call) RunAndReturn(run func(context.Context, str
 	return _c
 }
 
+// UpdateStatus provides a mock function with given fields: ctx, orderUUID, status
+func (_m *OrderService) UpdateStatus(ctx context.Context, orderUUID string, status model.OrderStatus) error {
+	ret := _m.Called(ctx, orderUUID, status)
+
+	if len(ret) == 0 {
+		panic("no return value specified for UpdateStatus")
+	}
+
+	var r0 error
+	if rf, ok := ret.Get(0).(func(context.Context, string, model.OrderStatus) error); ok {
+		r0 = rf(ctx, orderUUID, status)
+	} else {
+		r0 = ret.Error(0)
+	}
+
+	return r0
+}
+
+// OrderService_UpdateStatus_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'UpdateStatus'
+type OrderService_UpdateStatus_Call struct {
+	*mock.Call
+}
+
+// UpdateStatus is a helper method to define mock.On call
+//   - ctx context.Context
+//   - orderUUID string
+//   - status model.OrderStatus
+func (_e *OrderService_Expecter) UpdateStatus(ctx interface{}, orderUUID interface{}, status interface{}) *OrderService_UpdateStatus_Call {
+	return &OrderService_UpdateStatus_Call{Call: _e.mock.On("UpdateStatus", ctx, orderUUID, status)}
+}
+
+func (_c *OrderService_UpdateStatus_Call) Run(run func(ctx context.Context, orderUUID string, status model.OrderStatus)) *OrderService_UpdateStatus_Call {
+	_c.Call.Run(func(args mock.Arguments) {
+		run(args[0].(context.Context), args[1].(string), args[2].(model.OrderStatus))
+	})
+	return _c
+}
+
+func (_c *OrderService_UpdateStatus_Call) Return(_a0 error) *OrderService_UpdateStatus_Call {
+	_c.Call.Return(_a0)
+	return _c
+}
+
+func (_c *OrderService_UpdateStatus_Call) RunAndReturn(run func(context.Context, string, model.OrderStatus) error) *OrderService_UpdateStatus_Call {
+	_c.Call.Return(run)
+	return _c
+}
+
 // NewOrderService creates a new instance of OrderService. It also registers a testing interface on the mock and a cleanup function to assert the mocks expectations.
 // The first argument is typically a *testing.T value.
 func NewOrderService(t interface {

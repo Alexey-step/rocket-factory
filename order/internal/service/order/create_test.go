@@ -12,6 +12,7 @@ import (
 	clientMocks "github.com/Alexey-step/rocket-factory/order/internal/client/grpc/mocks"
 	"github.com/Alexey-step/rocket-factory/order/internal/model"
 	"github.com/Alexey-step/rocket-factory/order/internal/repository/mocks"
+	orderServiceMocks "github.com/Alexey-step/rocket-factory/order/internal/service/mocks"
 )
 
 func TestCreateOrderSuccess(t *testing.T) {
@@ -37,11 +38,13 @@ func TestCreateOrderSuccess(t *testing.T) {
 	orderRepository := mocks.NewOrderRepository(t)
 	inventoryClient := clientMocks.NewInventoryClient(t)
 	paymentClient := clientMocks.NewPaymentClient(t)
+	orderProducer := orderServiceMocks.NewOrderProducerService(t)
 
 	orderService := NewService(
 		orderRepository,
 		inventoryClient,
 		paymentClient,
+		orderProducer,
 	)
 
 	inventoryClient.On("ListParts", ctx, filter).Return(listParts, nil).Once()
@@ -66,11 +69,13 @@ func TestCreateOrderListPartsFail(t *testing.T) {
 	orderRepository := mocks.NewOrderRepository(t)
 	inventoryClient := clientMocks.NewInventoryClient(t)
 	paymentClient := clientMocks.NewPaymentClient(t)
+	orderProducer := orderServiceMocks.NewOrderProducerService(t)
 
 	orderService := NewService(
 		orderRepository,
 		inventoryClient,
 		paymentClient,
+		orderProducer,
 	)
 
 	inventoryClient.On("ListParts", ctx, filter).Return(nil, expectedListPartsError).Once()
@@ -102,11 +107,13 @@ func TestCreateOrderBadRequest(t *testing.T) {
 	orderRepository := mocks.NewOrderRepository(t)
 	inventoryClient := clientMocks.NewInventoryClient(t)
 	paymentClient := clientMocks.NewPaymentClient(t)
+	orderProducer := orderServiceMocks.NewOrderProducerService(t)
 
 	orderService := NewService(
 		orderRepository,
 		inventoryClient,
 		paymentClient,
+		orderProducer,
 	)
 
 	inventoryClient.On("ListParts", ctx, filter).Return(listParts, nil).Once()
@@ -136,11 +143,13 @@ func TestCreateOrderRepoErr(t *testing.T) {
 	orderRepository := mocks.NewOrderRepository(t)
 	inventoryClient := clientMocks.NewInventoryClient(t)
 	paymentClient := clientMocks.NewPaymentClient(t)
+	orderProducer := orderServiceMocks.NewOrderProducerService(t)
 
 	orderService := NewService(
 		orderRepository,
 		inventoryClient,
 		paymentClient,
+		orderProducer,
 	)
 
 	inventoryClient.On("ListParts", ctx, filter).Return(listParts, nil).Once()

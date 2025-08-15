@@ -5,5 +5,7 @@ use (
 	./inventory
 	./payment
 	./shared
+	./assembly
+	./notification
 	platform
 )
