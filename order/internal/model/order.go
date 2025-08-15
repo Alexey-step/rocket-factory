@@ -30,6 +30,7 @@ const (
 	OrderStatusPendingPayment OrderStatus = "PENDING_PAYMENT"
 	OrderStatusPaid           OrderStatus = "PAID"
 	OrderStatusCanceled       OrderStatus = "CANCELED"
+	OrderStatusCompleted      OrderStatus = "COMPLETED"
 )
 
 type OrderCreationInfo struct {

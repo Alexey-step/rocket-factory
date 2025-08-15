@@ -11,6 +11,7 @@ import (
 	clientMocks "github.com/Alexey-step/rocket-factory/order/internal/client/grpc/mocks"
 	"github.com/Alexey-step/rocket-factory/order/internal/model"
 	"github.com/Alexey-step/rocket-factory/order/internal/repository/mocks"
+	orderServiceMocks "github.com/Alexey-step/rocket-factory/order/internal/service/mocks"
 	"github.com/Alexey-step/rocket-factory/platform/pkg/logger"
 )
 
@@ -26,11 +27,13 @@ func TestCancelOrderSuccess(t *testing.T) {
 	orderRepository := mocks.NewOrderRepository(t)
 	inventoryClient := clientMocks.NewInventoryClient(t)
 	paymentClient := clientMocks.NewPaymentClient(t)
+	orderProducer := orderServiceMocks.NewOrderProducerService(t)
 
 	orderService := NewService(
 		orderRepository,
 		inventoryClient,
 		paymentClient,
+		orderProducer,
 	)
 
 	orderRepository.On("GetOrder", ctx, orderUUID).Return(order, nil).Once()
@@ -50,11 +53,13 @@ func TestCancelOrderFail(t *testing.T) {
 	orderRepository := mocks.NewOrderRepository(t)
 	inventoryClient := clientMocks.NewInventoryClient(t)
 	paymentClient := clientMocks.NewPaymentClient(t)
+	orderProducer := orderServiceMocks.NewOrderProducerService(t)
 
 	orderService := NewService(
 		orderRepository,
 		inventoryClient,
 		paymentClient,
+		orderProducer,
 	)
 
 	orderRepository.On("GetOrder", ctx, orderUUID).Return(order, nil).Once()
@@ -74,11 +79,13 @@ func TestCancelOrderConflictFail(t *testing.T) {
 	orderRepository := mocks.NewOrderRepository(t)
 	inventoryClient := clientMocks.NewInventoryClient(t)
 	paymentClient := clientMocks.NewPaymentClient(t)
+	orderProducer := orderServiceMocks.NewOrderProducerService(t)
 
 	orderService := NewService(
 		orderRepository,
 		inventoryClient,
 		paymentClient,
+		orderProducer,
 	)
 
 	orderRepository.On("GetOrder", ctx, orderUUID).Return(order, nil).Once()
@@ -96,11 +103,13 @@ func TestCancelOrderInternalError(t *testing.T) {
 	orderRepository := mocks.NewOrderRepository(t)
 	inventoryClient := clientMocks.NewInventoryClient(t)
 	paymentClient := clientMocks.NewPaymentClient(t)
+	orderProducer := orderServiceMocks.NewOrderProducerService(t)
 
 	orderService := NewService(
 		orderRepository,
 		inventoryClient,
 		paymentClient,
+		orderProducer,
 	)
 
 	orderRepository.On("GetOrder", ctx, orderUUID).Return(model.OrderData{}, expectedErr).Once()
@@ -118,11 +127,13 @@ func TestCancelOrderNotFoundFail(t *testing.T) {
 	orderRepository := mocks.NewOrderRepository(t)
 	inventoryClient := clientMocks.NewInventoryClient(t)
 	paymentClient := clientMocks.NewPaymentClient(t)
+	orderProducer := orderServiceMocks.NewOrderProducerService(t)
 
 	orderService := NewService(
 		orderRepository,
 		inventoryClient,
 		paymentClient,
+		orderProducer,
 	)
 
 	orderRepository.On("GetOrder", ctx, orderUUID).Return(model.OrderData{}, expectedErr).Once()
@@ -146,11 +157,13 @@ func TestCancelOrderUpdateError(t *testing.T) {
 	orderRepository := mocks.NewOrderRepository(t)
 	inventoryClient := clientMocks.NewInventoryClient(t)
 	paymentClient := clientMocks.NewPaymentClient(t)
+	orderProducer := orderServiceMocks.NewOrderProducerService(t)
 
 	orderService := NewService(
 		orderRepository,
 		inventoryClient,
 		paymentClient,
+		orderProducer,
 	)
 
 	orderRepository.On("GetOrder", ctx, orderUUID).Return(order, nil).Once()
@@ -171,11 +184,13 @@ func TestCancelOrderInternalErr(t *testing.T) {
 	orderRepository := mocks.NewOrderRepository(t)
 	inventoryClient := clientMocks.NewInventoryClient(t)
 	paymentClient := clientMocks.NewPaymentClient(t)
+	orderProducer := orderServiceMocks.NewOrderProducerService(t)
 
 	orderService := NewService(
 		orderRepository,
 		inventoryClient,
 		paymentClient,
+		orderProducer,
 	)
 
 	orderRepository.On("GetOrder", ctx, orderUUID).Return(order, nil).Once()

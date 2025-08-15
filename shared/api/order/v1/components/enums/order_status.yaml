@@ -4,7 +4,9 @@ description: |
   - PENDING_PAYMENT: Ожидает оплаты
   - PAID: Оплачен
   - CANCELLED: Отменён
+  - COMPLETED: Завершён
 enum:
   - PENDING_PAYMENT
   - PAID
   - CANCELLED
+  - COMPLETED
