@@ -13,6 +13,7 @@ import (
 
 	v1 "github.com/Alexey-step/rocket-factory/order/internal/api/order/v1"
 	grpcClient "github.com/Alexey-step/rocket-factory/order/internal/client/grpc"
+	iamClient "github.com/Alexey-step/rocket-factory/order/internal/client/grpc/iam/v1"
 	inventoryClient "github.com/Alexey-step/rocket-factory/order/internal/client/grpc/inventory/v1"
 	paymentClient "github.com/Alexey-step/rocket-factory/order/internal/client/grpc/payment/v1"
 	"github.com/Alexey-step/rocket-factory/order/internal/config"
@@ -33,8 +34,10 @@ import (
 	"github.com/Alexey-step/rocket-factory/platform/pkg/migrator"
 	pgMigrator "github.com/Alexey-step/rocket-factory/platform/pkg/migrator/pg"
 	orderV1 "github.com/Alexey-step/rocket-factory/shared/pkg/openapi/order/v1"
+	authV1 "github.com/Alexey-step/rocket-factory/shared/pkg/proto/auth/v1"
 	inventory_v1 "github.com/Alexey-step/rocket-factory/shared/pkg/proto/inventory/v1"
 	paymentV1 "github.com/Alexey-step/rocket-factory/shared/pkg/proto/payment/v1"
+	userV1 "github.com/Alexey-step/rocket-factory/shared/pkg/proto/user/v1"
 )
 
 type diContainer struct {
@@ -44,6 +47,7 @@ type diContainer struct {
 
 	inventoryClient grpcClient.InventoryClient
 	paymentClient   grpcClient.PaymentClient
+	iamClient       grpcClient.IamClient
 
 	postgresDB *pgxpool.Pool
 	migrator   migrator.Migrator
@@ -109,7 +113,7 @@ func (d *diContainer) PaymentClient(_ context.Context) grpcClient.PaymentClient 
 			grpc.WithTransportCredentials(insecure.NewCredentials()),
 		)
 		if err != nil {
-			log.Printf("failed to connect to invertory: %v\n", err)
+			log.Printf("failed to connect to payment: %v\n", err)
 		}
 
 		closer.AddNamed("Payment client", func(ctx context.Context) error {
@@ -119,6 +123,28 @@ func (d *diContainer) PaymentClient(_ context.Context) grpcClient.PaymentClient 
 		d.paymentClient = paymentClient.NewClient(paymentV1.NewPaymentServiceClient(paymentConn))
 	}
 	return d.paymentClient
+}
+
+func (d *diContainer) IamClient(_ context.Context) grpcClient.IamClient {
+	if d.iamClient == nil {
+		iamConn, err := grpc.NewClient(
+			config.AppConfig().Iam.Address(),
+			grpc.WithTransportCredentials(insecure.NewCredentials()),
+		)
+		if err != nil {
+			log.Printf("failed to connect to iam: %v\n", err)
+		}
+
+		closer.AddNamed("Iam client", func(ctx context.Context) error {
+			return iamConn.Close()
+		})
+
+		d.iamClient = iamClient.NewClient(
+			authV1.NewAuthServiceClient(iamConn),
+			userV1.NewUserServiceClient(iamConn),
+		)
+	}
+	return d.iamClient
 }
 
 func (d *diContainer) OrderRepository(ctx context.Context) repository.OrderRepository {

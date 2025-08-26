@@ -1,0 +1,7 @@
+name: X-Session-Uuid
+in: header
+required: true
+description: Уникальный идентификатор сессии пользователя, который используется для отслеживания состояния и контекста пользователя в приложении.
+schema:
+  type: string
+  format: uuid

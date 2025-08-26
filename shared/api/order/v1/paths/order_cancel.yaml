@@ -1,11 +1,11 @@
-parameters:
-  - $ref: "../params/order_uuid.yaml"
-
 post:
   summary: Order canceled
   operationId: CancelOrder
   tags:
     - Order
+  parameters:
+    - $ref: "../params/order_uuid.yaml"
+    - $ref: "../headers/session_uuid.yaml"
   responses:
     '204':
       description: No content

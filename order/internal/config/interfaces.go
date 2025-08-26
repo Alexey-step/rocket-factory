@@ -39,3 +39,7 @@ type OrderPaidProducerConfig interface {
 type KafkaConfig interface {
 	Brokers() []string
 }
+
+type IamGRPCConfig interface {
+	Address() string
+}

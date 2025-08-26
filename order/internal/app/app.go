@@ -12,9 +12,9 @@ import (
 	"go.uber.org/zap"
 
 	"github.com/Alexey-step/rocket-factory/order/internal/config"
-	customMiddleware "github.com/Alexey-step/rocket-factory/order/internal/middleware"
 	"github.com/Alexey-step/rocket-factory/platform/pkg/closer"
 	"github.com/Alexey-step/rocket-factory/platform/pkg/logger"
+	customMiddleware "github.com/Alexey-step/rocket-factory/platform/pkg/middleware/http"
 	orderV1 "github.com/Alexey-step/rocket-factory/shared/pkg/openapi/order/v1"
 )
 
@@ -130,9 +130,12 @@ func (a *App) initHTTPServer(ctx context.Context) error {
 
 	r := chi.NewRouter()
 
+	authMiddleware := customMiddleware.NewAuthMiddleware(a.diContainer.IamClient(ctx))
+
 	// Добавляем middleware
 	r.Use(middleware.Logger)
 	r.Use(middleware.Recoverer)
+	r.Use(authMiddleware.Handle)
 	r.Use(customMiddleware.RequestLogger)
 	r.Use(middleware.Timeout(10 * time.Second))
 

@@ -11,10 +11,10 @@ import (
 	"google.golang.org/grpc/reflection"
 
 	"github.com/Alexey-step/rocket-factory/inventory/internal/config"
-	"github.com/Alexey-step/rocket-factory/inventory/internal/interceptor"
 	"github.com/Alexey-step/rocket-factory/platform/pkg/closer"
 	"github.com/Alexey-step/rocket-factory/platform/pkg/grpc/health"
 	"github.com/Alexey-step/rocket-factory/platform/pkg/logger"
+	interceptor "github.com/Alexey-step/rocket-factory/platform/pkg/middleware/grpc"
 	inventoryV1 "github.com/Alexey-step/rocket-factory/shared/pkg/proto/inventory/v1"
 )
 
@@ -96,9 +96,11 @@ func (a *App) initListener(_ context.Context) error {
 }
 
 func (a *App) initGRPCServer(ctx context.Context) error {
+	authInterceptor := interceptor.NewAuthInterceptor(a.diContainer.IamClient(ctx))
 	a.grpcServer = grpc.NewServer(
 		grpc.Creds(insecure.NewCredentials()),
 		grpc.ChainUnaryInterceptor(
+			authInterceptor.Unary(),
 			interceptor.LoggerInterceptor(),
 			interceptor.Validate(),
 		))
