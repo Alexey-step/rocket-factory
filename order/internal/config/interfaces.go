@@ -43,3 +43,10 @@ type KafkaConfig interface {
 type IamGRPCConfig interface {
 	Address() string
 }
+
+type TracingConfig interface {
+	CollectorEndpoint() string
+	ServiceName() string
+	Environment() string
+	ServiceVersion() string
+}

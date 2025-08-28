@@ -3,6 +3,7 @@ package app
 import (
 	"context"
 	"fmt"
+	"github.com/Alexey-step/rocket-factory/platform/pkg/tracing"
 	"net/http"
 	"time"
 
@@ -80,6 +81,7 @@ func (a *App) initDeps(ctx context.Context) error {
 	inits := []func(context.Context) error{
 		a.initDI,
 		a.initLogger,
+		a.initTracing,
 		a.initCloser,
 		a.initHTTPServer,
 		a.initMigrations,
@@ -105,6 +107,17 @@ func (a *App) initLogger(_ context.Context) error {
 		config.AppConfig().Logger.Level(),
 		config.AppConfig().Logger.AsJson(),
 	)
+}
+
+func (a *App) initTracing(ctx context.Context) error {
+	err := tracing.InitTracer(ctx, config.AppConfig().Tracing)
+	if err != nil {
+		return err
+	}
+
+	closer.AddNamed("tracer", tracing.ShutdownTracer)
+
+	return nil
 }
 
 func (a *App) initMigrations(ctx context.Context) error {
