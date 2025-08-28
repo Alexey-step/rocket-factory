@@ -14,3 +14,7 @@ type MongoConfig interface {
 	DatabaseName() string
 	DisabledInitMockParts() bool
 }
+
+type IamGRPCConfig interface {
+	Address() string
+}

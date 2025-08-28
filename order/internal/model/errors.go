@@ -22,3 +22,8 @@ var (
 	ErrPaymentConflict      = errors.New("payment conflict")
 	ErrPaymentNotFound      = errors.New("payment not found")
 )
+
+// Auth errors
+var (
+	ErrAuthInvalidCredentials = errors.New("invalid credentials")
+)

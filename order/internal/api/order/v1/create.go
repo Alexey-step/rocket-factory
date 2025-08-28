@@ -13,7 +13,7 @@ import (
 	orderV1 "github.com/Alexey-step/rocket-factory/shared/pkg/openapi/order/v1"
 )
 
-func (a *api) CreateOrder(ctx context.Context, req *orderV1.CreateOrderRequest) (orderV1.CreateOrderRes, error) {
+func (a *api) CreateOrder(ctx context.Context, req *orderV1.CreateOrderRequest, params orderV1.CreateOrderParams) (orderV1.CreateOrderRes, error) {
 	orderInfo, err := a.service.CreateOrder(ctx, req.GetUserUUID().String(), converter.UUIDsToStrings(req.GetPartUuids()))
 	if err != nil {
 		if errors.Is(err, model.ErrPartsNotFound) {
