@@ -11,6 +11,7 @@ import (
 	clientMocks "github.com/Alexey-step/rocket-factory/order/internal/client/grpc/mocks"
 	"github.com/Alexey-step/rocket-factory/order/internal/model"
 	"github.com/Alexey-step/rocket-factory/order/internal/repository/mocks"
+	orderServiceMocks "github.com/Alexey-step/rocket-factory/order/internal/service/mocks"
 )
 
 func TestGetOrderSuccess(t *testing.T) {
@@ -22,11 +23,13 @@ func TestGetOrderSuccess(t *testing.T) {
 	orderRepository := mocks.NewOrderRepository(t)
 	inventoryClient := clientMocks.NewInventoryClient(t)
 	paymentClient := clientMocks.NewPaymentClient(t)
+	orderProducer := orderServiceMocks.NewOrderProducerService(t)
 
 	orderService := NewService(
 		orderRepository,
 		inventoryClient,
 		paymentClient,
+		orderProducer,
 	)
 
 	orderRepository.On("GetOrder", ctx, orderUUID).Return(order, nil).Once()
@@ -44,11 +47,13 @@ func TestGetOrderNotFoundErr(t *testing.T) {
 	orderRepository := mocks.NewOrderRepository(t)
 	inventoryClient := clientMocks.NewInventoryClient(t)
 	paymentClient := clientMocks.NewPaymentClient(t)
+	orderProducer := orderServiceMocks.NewOrderProducerService(t)
 
 	orderService := NewService(
 		orderRepository,
 		inventoryClient,
 		paymentClient,
+		orderProducer,
 	)
 
 	orderRepository.On("GetOrder", ctx, orderUUID).Return(model.OrderData{}, expectedErr).Once()
@@ -67,11 +72,13 @@ func TestGetOrderInternalErr(t *testing.T) {
 	orderRepository := mocks.NewOrderRepository(t)
 	inventoryClient := clientMocks.NewInventoryClient(t)
 	paymentClient := clientMocks.NewPaymentClient(t)
+	orderProducer := orderServiceMocks.NewOrderProducerService(t)
 
 	orderService := NewService(
 		orderRepository,
 		inventoryClient,
 		paymentClient,
+		orderProducer,
 	)
 
 	orderRepository.On("GetOrder", ctx, orderUUID).Return(model.OrderData{}, expectedErr).Once()

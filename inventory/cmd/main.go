@@ -15,9 +15,9 @@ import (
 	"github.com/Alexey-step/rocket-factory/platform/pkg/logger"
 )
 
-const configPath = ".env"
+// const configPath = ".env"
+const configPath = "deploy/compose/inventory/.env"
 
-// const configPath = "deploy/compose/inventory/.env"
 func main() {
 	ctx := context.Background()
 
