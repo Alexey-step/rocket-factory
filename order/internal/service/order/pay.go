@@ -5,13 +5,28 @@ import (
 
 	"github.com/google/uuid"
 	"github.com/samber/lo"
+	"go.opentelemetry.io/otel/attribute"
+	"go.opentelemetry.io/otel/trace"
 
+	orderMetrics "github.com/Alexey-step/rocket-factory/order/internal/metrics"
 	"github.com/Alexey-step/rocket-factory/order/internal/model"
+	"github.com/Alexey-step/rocket-factory/platform/pkg/tracing"
 )
 
 func (s *service) PayOrder(ctx context.Context, orderUUID, paymentMethod string) (transactionUUID string, err error) {
+	// Создаем спан для вызова Payment сервиса
+	ctx, span := tracing.StartSpan(ctx, "order.call_payment_pay_order",
+		trace.WithAttributes(
+			attribute.String("order.uuid", orderUUID),
+			attribute.String("order.payment_method", paymentMethod),
+		),
+	)
+
+	defer span.End()
+
 	order, err := s.orderRepository.GetOrder(ctx, orderUUID)
 	if err != nil {
+		span.RecordError(err)
 		return "", err
 	}
 
@@ -21,8 +36,14 @@ func (s *service) PayOrder(ctx context.Context, orderUUID, paymentMethod string)
 
 	transUUID, err := s.paymentClient.PayOrder(ctx, order.UserUUID, orderUUID, paymentMethod)
 	if err != nil {
+		span.RecordError(err)
 		return "", err
 	}
+
+	// Добавляем атрибуты результата
+	span.SetAttributes(
+		attribute.String("payment.transaction_uuid", transUUID),
+	)
 
 	orderStatus := model.OrderStatusPaid
 	updateErr := s.orderRepository.UpdateOrder(ctx, order.UUID, model.OrderUpdateInfo{
@@ -32,6 +53,7 @@ func (s *service) PayOrder(ctx context.Context, orderUUID, paymentMethod string)
 	})
 
 	if updateErr != nil {
+		span.RecordError(updateErr)
 		return "", updateErr
 	}
 
@@ -43,7 +65,13 @@ func (s *service) PayOrder(ctx context.Context, orderUUID, paymentMethod string)
 		TransactionUUID: transUUID,
 	})
 	if err != nil {
+		span.RecordError(err)
 		return "", err
+	}
+
+	// Метрики по общей сумме оплат
+	if orderMetrics.OrdersRevenueTotal != nil {
+		orderMetrics.OrdersRevenueTotal.Add(ctx, order.TotalPrice)
 	}
 
 	return transUUID, nil

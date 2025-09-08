@@ -9,8 +9,8 @@ import (
 	"github.com/Alexey-step/rocket-factory/platform/pkg/logger"
 )
 
-func (r *service) GetPart(ctx context.Context, orderUUID string) (model.Part, error) {
-	part, err := r.inventoryRepository.GetPart(ctx, orderUUID)
+func (s *service) GetPart(ctx context.Context, orderUUID string) (model.Part, error) {
+	part, err := s.inventoryRepository.GetPart(ctx, orderUUID)
 	if err != nil {
 		logger.Error(ctx, "failed to get part",
 			zap.String("order_uuid", orderUUID),

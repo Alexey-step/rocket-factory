@@ -5,6 +5,7 @@ import (
 	"time"
 
 	"github.com/google/uuid"
+	"golang.org/x/crypto/bcrypt"
 
 	"github.com/Alexey-step/rocket-factory/iam/internal/model"
 )
@@ -13,6 +14,11 @@ func (s *service) Login(ctx context.Context, login, password string) (string, er
 	user, err := s.userRepository.GetUserByLogin(ctx, login, password)
 	if err != nil {
 		return "", model.ErrInvalidCredentials
+	}
+
+	err = bcrypt.CompareHashAndPassword(user.Password, []byte(password))
+	if err != nil {
+		return "", err
 	}
 
 	session := model.Session{

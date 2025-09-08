@@ -7,6 +7,7 @@ type User struct {
 	Info      UserInfo   // Базовая информация
 	CreatedAt time.Time  // Дата создания
 	UpdatedAt *time.Time // Дата обновления
+	Password  []byte     // Хэш пароля
 }
 
 type UserInfo struct {

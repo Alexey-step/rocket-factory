@@ -19,8 +19,8 @@ func (s *service) OrderHandler(ctx context.Context, msg kafka.Message) error {
 
 	logger.Info(ctx, "Processing message",
 		zap.String("topic", msg.Topic),
-		zap.Any("partition", msg.Partition),
-		zap.Any("offset", msg.Offset),
+		zap.Int32("partition", msg.Partition),
+		zap.Int64("offset", msg.Offset),
 		zap.String("order_uuid", event.OrderUUID),
 		zap.String("event_uuid", event.EventUUID),
 		zap.Int64("build_time_sec", event.BuildTimeSec),

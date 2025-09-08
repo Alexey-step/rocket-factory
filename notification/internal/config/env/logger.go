@@ -5,8 +5,12 @@ import (
 )
 
 type loggerEnvConfig struct {
-	Level  string `env:"LOGGER_LEVEL,required"`
-	AsJson bool   `env:"LOGGER_AS_JSON,required"`
+	Level                  string `env:"LOGGER_LEVEL,required"`
+	AsJson                 bool   `env:"LOGGER_AS_JSON,required"`
+	OtelEndpoint           string `env:"LOGGER_OTEL_COLLECTOR_ENDPOINT,required"`
+	OtelServiceEnvironment string `env:"LOGGER_OTEL_COLLECTOR_ENVIRONMENT,required"`
+	OtelServiceName        string `env:"LOGGER_OTEL_COLLECTOR_SERVICE_NAME,required"`
+	OtelEnabled            bool   `env:"LOGGER_OTEL_COLLECTOR_ENABLED,required"`
 }
 
 type loggerConfig struct {
@@ -28,4 +32,20 @@ func (cfg *loggerConfig) Level() string {
 
 func (cfg *loggerConfig) AsJson() bool {
 	return cfg.raw.AsJson
+}
+
+func (cfg *loggerConfig) OtelEnabled() bool {
+	return cfg.raw.OtelEnabled
+}
+
+func (cfg *loggerConfig) OtelServiceName() string {
+	return cfg.raw.OtelServiceName
+}
+
+func (cfg *loggerConfig) OtelServiceEnvironment() string {
+	return cfg.raw.OtelServiceEnvironment
+}
+
+func (cfg *loggerConfig) OtelEndpoint() string {
+	return cfg.raw.OtelEndpoint
 }

@@ -76,3 +76,17 @@ packages:
   github.com/Alexey-step/rocket-factory/notification/internal/client/http:
     config:
       include-regex: ".*Client"
+
+
+  # IAM
+  github.com/Alexey-step/rocket-factory/iam/internal/service:
+    config:
+      include-regex: ".*Service"
+
+  github.com/Alexey-step/rocket-factory/iam/internal/config:
+    config:
+      include-regex: ".*Config"
+
+  github.com/Alexey-step/rocket-factory/iam/internal/repository:
+    config:
+      include-regex: ".*Repository"

@@ -12,7 +12,7 @@ import (
 )
 
 func (r *repository) Get(ctx context.Context, sessionUUID string) (model.Session, model.User, error) {
-	cacheKey := r.GetCacheKey(sessionUUID)
+	cacheKey := r.getCacheKey(sessionUUID)
 
 	values, err := r.cache.HGetAll(ctx, cacheKey)
 	if err != nil {
