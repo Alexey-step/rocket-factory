@@ -25,7 +25,7 @@ func (_m *UserRepository) EXPECT() *UserRepository_Expecter {
 }
 
 // Create provides a mock function with given fields: ctx, info, password
-func (_m *UserRepository) Create(ctx context.Context, info model.UserInfo, password string) (string, error) {
+func (_m *UserRepository) Create(ctx context.Context, info model.UserInfo, password []byte) (string, error) {
 	ret := _m.Called(ctx, info, password)
 
 	if len(ret) == 0 {
@@ -34,16 +34,16 @@ func (_m *UserRepository) Create(ctx context.Context, info model.UserInfo, passw
 
 	var r0 string
 	var r1 error
-	if rf, ok := ret.Get(0).(func(context.Context, model.UserInfo, string) (string, error)); ok {
+	if rf, ok := ret.Get(0).(func(context.Context, model.UserInfo, []byte) (string, error)); ok {
 		return rf(ctx, info, password)
 	}
-	if rf, ok := ret.Get(0).(func(context.Context, model.UserInfo, string) string); ok {
+	if rf, ok := ret.Get(0).(func(context.Context, model.UserInfo, []byte) string); ok {
 		r0 = rf(ctx, info, password)
 	} else {
 		r0 = ret.Get(0).(string)
 	}
 
-	if rf, ok := ret.Get(1).(func(context.Context, model.UserInfo, string) error); ok {
+	if rf, ok := ret.Get(1).(func(context.Context, model.UserInfo, []byte) error); ok {
 		r1 = rf(ctx, info, password)
 	} else {
 		r1 = ret.Error(1)
@@ -60,14 +60,14 @@ type UserRepository_Create_Call struct {
 // Create is a helper method to define mock.On call
 //   - ctx context.Context
 //   - info model.UserInfo
-//   - password string
+//   - password []byte
 func (_e *UserRepository_Expecter) Create(ctx interface{}, info interface{}, password interface{}) *UserRepository_Create_Call {
 	return &UserRepository_Create_Call{Call: _e.mock.On("Create", ctx, info, password)}
 }
 
-func (_c *UserRepository_Create_Call) Run(run func(ctx context.Context, info model.UserInfo, password string)) *UserRepository_Create_Call {
+func (_c *UserRepository_Create_Call) Run(run func(ctx context.Context, info model.UserInfo, password []byte)) *UserRepository_Create_Call {
 	_c.Call.Run(func(args mock.Arguments) {
-		run(args[0].(context.Context), args[1].(model.UserInfo), args[2].(string))
+		run(args[0].(context.Context), args[1].(model.UserInfo), args[2].([]byte))
 	})
 	return _c
 }
@@ -77,7 +77,7 @@ func (_c *UserRepository_Create_Call) Return(userUUID string, err error) *UserRe
 	return _c
 }
 
-func (_c *UserRepository_Create_Call) RunAndReturn(run func(context.Context, model.UserInfo, string) (string, error)) *UserRepository_Create_Call {
+func (_c *UserRepository_Create_Call) RunAndReturn(run func(context.Context, model.UserInfo, []byte) (string, error)) *UserRepository_Create_Call {
 	_c.Call.Return(run)
 	return _c
 }
