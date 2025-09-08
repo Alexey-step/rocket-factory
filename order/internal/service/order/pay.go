@@ -53,7 +53,7 @@ func (s *service) PayOrder(ctx context.Context, orderUUID, paymentMethod string)
 	})
 
 	if updateErr != nil {
-		span.RecordError(err)
+		span.RecordError(updateErr)
 		return "", updateErr
 	}
 
