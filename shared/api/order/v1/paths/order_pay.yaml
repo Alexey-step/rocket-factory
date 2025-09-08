@@ -1,11 +1,11 @@
-parameters:
-  - $ref: "../params/order_uuid.yaml"
-
 post:
   summary: Order payment
   operationId: PayOrder
   tags:
     - Payment
+  parameters:
+    - $ref: "../params/order_uuid.yaml"
+    - $ref: "../headers/session_uuid.yaml"
   requestBody:
     required: true
     content:

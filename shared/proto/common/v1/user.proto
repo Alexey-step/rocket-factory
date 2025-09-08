@@ -1,0 +1,29 @@
+syntax = "proto3";
+
+package common.v1;
+
+import "google/protobuf/timestamp.proto";
+
+option go_package = "github.com/Alexey-step/rocket-factory/shared/pkg/proto/common/v1;common_v1";
+
+
+// NotificationMethod представляет канал уведомлений пользователя
+message NotificationMethod {
+  string provider_name = 1; // Провайдер: telegram, email, push и т.д.
+  string target = 2; // Адрес/идентификатор назначения (email, чат-id)
+}
+
+// UserInfo представляет базовую информацию о пользователе
+message UserInfo {
+  string login = 1; // Логин
+  string email = 2;	// Email
+  repeated NotificationMethod notification_methods = 3; //	Каналы уведомлений
+}
+
+// User представляет пользователя в системе
+message User {
+  string uuid = 1; // UUID пользователя
+  UserInfo info = 2; // Базовая информация
+  google.protobuf.Timestamp created_at = 3; // Дата создания
+  google.protobuf.Timestamp updated_at = 4; //	Дата обновления
+}
