@@ -23,6 +23,6 @@ func NewRepository(cache cache.RedisClient) *repository {
 	}
 }
 
-func (r *repository) GetCacheKey(uuid string) string {
+func (r *repository) getCacheKey(uuid string) string {
 	return fmt.Sprintf("%s%s", cacheKeyPrefix, uuid)
 }

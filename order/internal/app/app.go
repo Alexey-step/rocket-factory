@@ -3,7 +3,6 @@ package app
 import (
 	"context"
 	"fmt"
-	"github.com/Alexey-step/rocket-factory/platform/pkg/tracing"
 	"net/http"
 	"time"
 
@@ -13,9 +12,13 @@ import (
 	"go.uber.org/zap"
 
 	"github.com/Alexey-step/rocket-factory/order/internal/config"
+	orderMetrics "github.com/Alexey-step/rocket-factory/order/internal/metrics"
+	metricsMiddleware "github.com/Alexey-step/rocket-factory/order/internal/middlewares"
 	"github.com/Alexey-step/rocket-factory/platform/pkg/closer"
 	"github.com/Alexey-step/rocket-factory/platform/pkg/logger"
+	platformMetrics "github.com/Alexey-step/rocket-factory/platform/pkg/metrics"
 	customMiddleware "github.com/Alexey-step/rocket-factory/platform/pkg/middleware/http"
+	"github.com/Alexey-step/rocket-factory/platform/pkg/tracing"
 	orderV1 "github.com/Alexey-step/rocket-factory/shared/pkg/openapi/order/v1"
 )
 
@@ -85,6 +88,7 @@ func (a *App) initDeps(ctx context.Context) error {
 		a.initCloser,
 		a.initHTTPServer,
 		a.initMigrations,
+		a.initMetrics,
 	}
 
 	for _, f := range inits {
@@ -103,10 +107,7 @@ func (a *App) initDI(_ context.Context) error {
 }
 
 func (a *App) initLogger(_ context.Context) error {
-	return logger.Init(
-		config.AppConfig().Logger.Level(),
-		config.AppConfig().Logger.AsJson(),
-	)
+	return logger.Init(config.AppConfig().Logger) //nolint:contextcheck
 }
 
 func (a *App) initTracing(ctx context.Context) error {
@@ -149,6 +150,8 @@ func (a *App) initHTTPServer(ctx context.Context) error {
 	r.Use(middleware.Logger)
 	r.Use(middleware.Recoverer)
 	r.Use(authMiddleware.Handle)
+	r.Use(metricsMiddleware.MetricsMiddleware)
+	r.Use(tracing.HTTPHandlerMiddleware("order-service"))
 	r.Use(customMiddleware.RequestLogger)
 	r.Use(middleware.Timeout(10 * time.Second))
 
@@ -191,6 +194,22 @@ func (a *App) runConsumer(ctx context.Context) error {
 	err := a.diContainer.OrderConsumerService(ctx).RunConsumer(ctx)
 	if err != nil {
 		return err
+	}
+
+	return nil
+}
+
+func (a *App) initMetrics(ctx context.Context) error {
+	err := platformMetrics.InitProvider(ctx, config.AppConfig().Metrics)
+	if err != nil {
+		panic(fmt.Sprintf("failed to init metrics provider: %v", err))
+	}
+
+	closer.AddNamed("Metrics Provider", platformMetrics.Shutdown)
+
+	err = orderMetrics.InitMetrics(config.AppConfig().Metrics)
+	if err != nil {
+		panic(fmt.Sprintf("failed to init Order metrics: %v", err))
 	}
 
 	return nil

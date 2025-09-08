@@ -9,7 +9,7 @@ import (
 )
 
 func (r *repository) Create(ctx context.Context, session model.Session, user model.User, ttl time.Duration) error {
-	cacheKey := r.GetCacheKey(session.UUID)
+	cacheKey := r.getCacheKey(session.UUID)
 
 	redisView := repoConverter.SessionAndUserToRedisView(session, user)
 

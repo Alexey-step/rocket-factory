@@ -33,6 +33,7 @@ import (
 	kafkaMiddleware "github.com/Alexey-step/rocket-factory/platform/pkg/middleware/kafka"
 	"github.com/Alexey-step/rocket-factory/platform/pkg/migrator"
 	pgMigrator "github.com/Alexey-step/rocket-factory/platform/pkg/migrator/pg"
+	"github.com/Alexey-step/rocket-factory/platform/pkg/tracing"
 	orderV1 "github.com/Alexey-step/rocket-factory/shared/pkg/openapi/order/v1"
 	authV1 "github.com/Alexey-step/rocket-factory/shared/pkg/proto/auth/v1"
 	inventory_v1 "github.com/Alexey-step/rocket-factory/shared/pkg/proto/inventory/v1"
@@ -92,6 +93,7 @@ func (d *diContainer) InventoryClient(_ context.Context) grpcClient.InventoryCli
 		inventoryConn, err := grpc.NewClient(
 			config.AppConfig().Inventory.Address(),
 			grpc.WithTransportCredentials(insecure.NewCredentials()),
+			grpc.WithUnaryInterceptor(tracing.UnaryClientInterceptor("order-service")),
 		)
 		if err != nil {
 			log.Printf("failed to connect to invertory: %v\n", err)
@@ -111,6 +113,7 @@ func (d *diContainer) PaymentClient(_ context.Context) grpcClient.PaymentClient 
 		paymentConn, err := grpc.NewClient(
 			config.AppConfig().Payment.Address(),
 			grpc.WithTransportCredentials(insecure.NewCredentials()),
+			grpc.WithUnaryInterceptor(tracing.UnaryClientInterceptor("order-service")),
 		)
 		if err != nil {
 			log.Printf("failed to connect to payment: %v\n", err)
@@ -130,6 +133,7 @@ func (d *diContainer) IamClient(_ context.Context) grpcClient.IamClient {
 		iamConn, err := grpc.NewClient(
 			config.AppConfig().Iam.Address(),
 			grpc.WithTransportCredentials(insecure.NewCredentials()),
+			grpc.WithUnaryInterceptor(tracing.UnaryClientInterceptor("order-service")),
 		)
 		if err != nil {
 			log.Printf("failed to connect to iam: %v\n", err)

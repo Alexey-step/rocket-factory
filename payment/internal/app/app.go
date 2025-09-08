@@ -4,7 +4,6 @@ import (
 	"context"
 	"errors"
 	"fmt"
-	"github.com/Alexey-step/rocket-factory/platform/pkg/tracing"
 	"net"
 
 	"go.uber.org/zap"
@@ -17,6 +16,7 @@ import (
 	"github.com/Alexey-step/rocket-factory/platform/pkg/closer"
 	"github.com/Alexey-step/rocket-factory/platform/pkg/grpc/health"
 	"github.com/Alexey-step/rocket-factory/platform/pkg/logger"
+	"github.com/Alexey-step/rocket-factory/platform/pkg/tracing"
 	paymentV1 "github.com/Alexey-step/rocket-factory/shared/pkg/proto/payment/v1"
 )
 
@@ -65,10 +65,7 @@ func (a *App) initDI(_ context.Context) error {
 }
 
 func (a *App) initLogger(_ context.Context) error {
-	return logger.Init(
-		config.AppConfig().Logger.Level(),
-		config.AppConfig().Logger.AsJson(),
-	)
+	return logger.Init(config.AppConfig().Logger) //nolint:contextcheck
 }
 
 func (a *App) initTracing(ctx context.Context) error {
@@ -113,6 +110,7 @@ func (a *App) initGRPCServer(ctx context.Context) error {
 		grpc.Creds(insecure.NewCredentials()),
 		grpc.ChainUnaryInterceptor(
 			interceptor.LoggerInterceptor(),
+			tracing.UnaryServerInterceptor("payment-service"),
 		),
 	)
 

@@ -64,10 +64,7 @@ func (a *App) initDI(_ context.Context) error {
 }
 
 func (a *App) initLogger(_ context.Context) error {
-	return logger.Init(
-		config.AppConfig().Logger.Level(),
-		config.AppConfig().Logger.AsJson(),
-	)
+	return logger.Init(config.AppConfig().Logger) //nolint:contextcheck
 }
 
 func (a *App) initCloser(_ context.Context) error {

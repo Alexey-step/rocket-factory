@@ -1,6 +1,8 @@
 package v1
 
-import "github.com/Alexey-step/rocket-factory/order/internal/service"
+import (
+	"github.com/Alexey-step/rocket-factory/order/internal/service"
+)
 
 type api struct {
 	service service.OrderService
