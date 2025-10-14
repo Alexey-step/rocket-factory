@@ -15,7 +15,7 @@ import (
 	"github.com/Alexey-step/rocket-factory/platform/pkg/logger"
 )
 
-const configPath = "./deploy/compose/iam/.env"
+const configPath = ".env"
 
 func main() {
 	err := config.Load(configPath)

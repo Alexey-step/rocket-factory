@@ -3,12 +3,22 @@ syntax = "proto3";
 package user.v1;
 
 import "common/v1/user.proto";
+import "google/api/annotations.proto";
 
 option go_package = "github.com/Alexey-step/rocket-factory/shared/pkg/proto/user/v1;user_v1";
 
 service UserService {
-  rpc Register(RegisterRequest) returns (RegisterResponse); // Регистрация нового пользователя
-  rpc GetUser(GetUserRequest) returns (GetUserResponse); // Получение информации о пользователе
+  rpc Register(RegisterRequest) returns (RegisterResponse) {
+    option (google.api.http) = {
+      post: "/api/v1/user/register"
+      body: "*"
+    };
+  }; // Регистрация нового пользователя
+  rpc GetUser(GetUserRequest) returns (GetUserResponse) {
+    option (google.api.http) = {
+      get: "/api/v1/user/{user_uuid}"
+    };
+  }; // Получение информации о пользователе
 }
 
 // RegisterRequest представляет запрос на регистрацию нового пользователя

@@ -1,0 +1,26 @@
+services: # Здесь описываются контейнеры, необходимые для Assembly-сервиса
+
+  app-assembly-grpc-server:
+    build:
+      context: ../../..
+      # Путь к директории с Dockerfile для сборки образа Assembly gRPC сервера
+      dockerfile: deploy/docker/assembly/Dockerfile
+    # Собираем UFO gRPC сервер из локального Dockerfile
+
+    container_name: app-assembly-grpc-server
+    # Явное имя контейнера — удобно для логов и отладки
+
+    env_file:
+      - .env
+
+    networks:
+      - microservices-net
+      # Подключаемся к общей сети для взаимодействия с другими микросервисами
+
+    restart: unless-stopped
+
+networks: # Определение используемой сети
+  microservices-net:
+    external: true
+    # Мы не создаём новую сеть, а подключаемся к внешней, общей для всех микросервисов
+    # Её должен создать docker-compose.yml или вручную: docker network create microservices-net

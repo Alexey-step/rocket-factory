@@ -139,9 +139,9 @@ func (_c *UserRepository_GetUser_Call) RunAndReturn(run func(context.Context, st
 	return _c
 }
 
-// GetUserByLogin provides a mock function with given fields: ctx, login, password
-func (_m *UserRepository) GetUserByLogin(ctx context.Context, login string, password string) (model.User, error) {
-	ret := _m.Called(ctx, login, password)
+// GetUserByLogin provides a mock function with given fields: ctx, login
+func (_m *UserRepository) GetUserByLogin(ctx context.Context, login string) (model.User, error) {
+	ret := _m.Called(ctx, login)
 
 	if len(ret) == 0 {
 		panic("no return value specified for GetUserByLogin")
@@ -149,17 +149,17 @@ func (_m *UserRepository) GetUserByLogin(ctx context.Context, login string, pass
 
 	var r0 model.User
 	var r1 error
-	if rf, ok := ret.Get(0).(func(context.Context, string, string) (model.User, error)); ok {
-		return rf(ctx, login, password)
+	if rf, ok := ret.Get(0).(func(context.Context, string) (model.User, error)); ok {
+		return rf(ctx, login)
 	}
-	if rf, ok := ret.Get(0).(func(context.Context, string, string) model.User); ok {
-		r0 = rf(ctx, login, password)
+	if rf, ok := ret.Get(0).(func(context.Context, string) model.User); ok {
+		r0 = rf(ctx, login)
 	} else {
 		r0 = ret.Get(0).(model.User)
 	}
 
-	if rf, ok := ret.Get(1).(func(context.Context, string, string) error); ok {
-		r1 = rf(ctx, login, password)
+	if rf, ok := ret.Get(1).(func(context.Context, string) error); ok {
+		r1 = rf(ctx, login)
 	} else {
 		r1 = ret.Error(1)
 	}
@@ -175,14 +175,13 @@ type UserRepository_GetUserByLogin_Call struct {
 // GetUserByLogin is a helper method to define mock.On call
 //   - ctx context.Context
 //   - login string
-//   - password string
-func (_e *UserRepository_Expecter) GetUserByLogin(ctx interface{}, login interface{}, password interface{}) *UserRepository_GetUserByLogin_Call {
-	return &UserRepository_GetUserByLogin_Call{Call: _e.mock.On("GetUserByLogin", ctx, login, password)}
+func (_e *UserRepository_Expecter) GetUserByLogin(ctx interface{}, login interface{}) *UserRepository_GetUserByLogin_Call {
+	return &UserRepository_GetUserByLogin_Call{Call: _e.mock.On("GetUserByLogin", ctx, login)}
 }
 
-func (_c *UserRepository_GetUserByLogin_Call) Run(run func(ctx context.Context, login string, password string)) *UserRepository_GetUserByLogin_Call {
+func (_c *UserRepository_GetUserByLogin_Call) Run(run func(ctx context.Context, login string)) *UserRepository_GetUserByLogin_Call {
 	_c.Call.Run(func(args mock.Arguments) {
-		run(args[0].(context.Context), args[1].(string), args[2].(string))
+		run(args[0].(context.Context), args[1].(string))
 	})
 	return _c
 }
@@ -192,7 +191,7 @@ func (_c *UserRepository_GetUserByLogin_Call) Return(_a0 model.User, _a1 error) 
 	return _c
 }
 
-func (_c *UserRepository_GetUserByLogin_Call) RunAndReturn(run func(context.Context, string, string) (model.User, error)) *UserRepository_GetUserByLogin_Call {
+func (_c *UserRepository_GetUserByLogin_Call) RunAndReturn(run func(context.Context, string) (model.User, error)) *UserRepository_GetUserByLogin_Call {
 	_c.Call.Return(run)
 	return _c
 }

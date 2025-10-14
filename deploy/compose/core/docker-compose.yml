@@ -40,7 +40,7 @@ services: # Раздел, в котором описываются все кон
       KAFKA_CONTROLLER_LISTENER_NAMES: CONTROLLER
       # Указываем, какой listener Kafka будет использовать для связи с controller (служебный трафик Raft).
 
-      KAFKA_ADVERTISED_LISTENERS: PLAINTEXT://kafka:${KAFKA_INTERNAL_PORT},PLAINTEXT_EXTERNAL://localhost:${KAFKA_EXTERNAL_PORT},CONTROLLER://kafka:${KAFKA_CONTROLLER_PORT}
+      KAFKA_ADVERTISED_LISTENERS: PLAINTEXT://kafka:${KAFKA_INTERNAL_PORT},CONTROLLER://kafka:${KAFKA_CONTROLLER_PORT}
       # Важно! Kafka сообщает клиентам, по каким адресам её можно найти.
       # - Внутри Docker сети Kafka объявляет адрес kafka:${KAFKA_INTERNAL_PORT}.
       # - Для подключения с хоста Kafka объявляет localhost:${KAFKA_EXTERNAL_PORT}.
@@ -113,7 +113,7 @@ services: # Раздел, в котором описываются все кон
       # Гарантируем, что Kafka UI стартует только после того, как Kafka станет healthy.
 
     healthcheck:
-      test: ["CMD", "curl", "-f", "http://localhost:8080/actuator/health"]
+      test: ["CMD", "curl", "-f", "http://0.0.0.0:8080/actuator/health"]
       interval: 10s
       timeout: 5s
       retries: 10
@@ -144,7 +144,7 @@ services: # Раздел, в котором описываются все кон
       - jaeger_data:/badger/data # Том для хранения данных трейсов
       - jaeger_key:/badger/key # Том для хранения индексов
     healthcheck:
-      test: [ "CMD", "wget", "--spider", "-q", "localhost:${JAEGER_UI_PORT}" ] # Проверка доступности UI
+      test: [ "CMD", "wget", "--spider", "-q", "0.0.0.0:${JAEGER_UI_PORT}" ] # Проверка доступности UI
       interval: 5s # Интервал проверки
       timeout: 3s # Таймаут проверки
       retries: 3 # Количество попыток
@@ -345,7 +345,7 @@ services: # Раздел, в котором описываются все кон
       - '--web.enable-lifecycle' # Включает HTTP API для управления Prometheus
       - '--web.enable-remote-write-receiver' # Включает поддержку remote write API для приема метрик
     healthcheck:
-      test: [ "CMD", "wget", "--quiet", "--spider", "http://localhost:9090/-/healthy" ]
+      test: [ "CMD", "wget", "--quiet", "--spider", "http://0.0.0.0:9090/-/healthy" ]
       interval: 10s
       timeout: 5s
       retries: 10
@@ -375,7 +375,7 @@ services: # Раздел, в котором описываются все кон
         condition: service_healthy
       # Гарантируем, что Grafana стартует только после того, как Prometheus станет healthy
     healthcheck:
-      test: [ "CMD", "wget", "--quiet", "--spider", "http://localhost:3000/api/health" ]
+      test: [ "CMD", "wget", "--quiet", "--spider", "http://0.0.0.0:3000/api/health" ]
       interval: 10s
       timeout: 5s
       retries: 10
@@ -403,7 +403,7 @@ services: # Раздел, в котором описываются все кон
       - microservices-net
       # Подключаем контейнер к общей сети микросервисов
     healthcheck:
-      test: [ "CMD", "wget", "--quiet", "--spider", "http://localhost:8888/metrics" ]
+      test: [ "CMD", "wget", "--quiet", "--spider", "http://0.0.0.0:8888/metrics" ]
       interval: 10s
       timeout: 5s
       retries: 10

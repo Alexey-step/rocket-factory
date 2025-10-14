@@ -27,13 +27,39 @@ var (
 	suiteCancel context.CancelFunc
 )
 
+// testLoggerConfig implements logger.LoggerConfig for integration tests
+type testLoggerConfig struct {
+	level                  string
+	asJson                 bool
+	otelEnabled            bool
+	otelServiceName        string
+	otelServiceEnvironment string
+	otelEndpoint           string
+}
+
+func (c *testLoggerConfig) Level() string                  { return c.level }
+func (c *testLoggerConfig) AsJson() bool                   { return c.asJson }
+func (c *testLoggerConfig) OtelEnabled() bool              { return c.otelEnabled }
+func (c *testLoggerConfig) OtelServiceName() string        { return c.otelServiceName }
+func (c *testLoggerConfig) OtelServiceEnvironment() string { return c.otelServiceEnvironment }
+func (c *testLoggerConfig) OtelEndpoint() string           { return c.otelEndpoint }
+
 func TestIntegration(t *testing.T) {
 	RegisterFailHandler(Fail)
 	RunSpecs(t, "Inventory Service Integration Test Suite")
 }
 
 var _ = BeforeSuite(func() {
-	err := logger.Init(loggerLevelValue, true)
+	testLoggerConfig := &testLoggerConfig{
+		level:                  loggerLevelValue,
+		asJson:                 true,
+		otelEnabled:            false,
+		otelServiceName:        "inventory-integration-tests",
+		otelServiceEnvironment: "test",
+		otelEndpoint:           "",
+	}
+
+	err := logger.Init(testLoggerConfig)
 	if err != nil {
 		panic(fmt.Sprintf("не удалось инициализировать логгер: %v", err))
 	}
@@ -43,7 +69,7 @@ var _ = BeforeSuite(func() {
 	// Загружаем .env файл и устанавливаем переменные в окружение
 	envVars, err := godotenv.Read(filepath.Join("..", "..", "..", "deploy", "compose", "inventory", ".env"))
 	if err != nil {
-		logger.Fatal(suiteCtx, "Не удалось загрузить .env файл", zap.Error(err))
+		logger.Error(suiteCtx, "Не удалось загрузить .env файл", zap.Error(err))
 	}
 
 	// Устанавливаем переменные в окружение процесса

@@ -8,6 +8,7 @@ package user_v1
 
 import (
 	v1 "github.com/Alexey-step/rocket-factory/shared/pkg/proto/common/v1"
+	_ "google.golang.org/genproto/googleapis/api/annotations"
 	protoreflect "google.golang.org/protobuf/reflect/protoreflect"
 	protoimpl "google.golang.org/protobuf/runtime/protoimpl"
 	reflect "reflect"
@@ -259,7 +260,7 @@ var File_user_v1_user_proto protoreflect.FileDescriptor
 
 const file_user_v1_user_proto_rawDesc = "" +
 	"\n" +
-	"\x12user/v1/user.proto\x12\auser.v1\x1a\x14common/v1/user.proto\"K\n" +
+	"\x12user/v1/user.proto\x12\auser.v1\x1a\x14common/v1/user.proto\x1a\x1cgoogle/api/annotations.proto\"K\n" +
 	"\x0fRegisterRequest\x128\n" +
 	"\x04info\x18\x01 \x01(\v2$.user.v1.UserRegistrationInfoRequestR\x04info\"/\n" +
 	"\x10RegisterResponse\x12\x1b\n" +
@@ -270,10 +271,10 @@ const file_user_v1_user_proto_rawDesc = "" +
 	"\x0eGetUserRequest\x12\x1b\n" +
 	"\tuser_uuid\x18\x01 \x01(\tR\buserUuid\"6\n" +
 	"\x0fGetUserResponse\x12#\n" +
-	"\x04user\x18\x01 \x01(\v2\x0f.common.v1.UserR\x04user2\x8c\x01\n" +
-	"\vUserService\x12?\n" +
-	"\bRegister\x12\x18.user.v1.RegisterRequest\x1a\x19.user.v1.RegisterResponse\x12<\n" +
-	"\aGetUser\x12\x17.user.v1.GetUserRequest\x1a\x18.user.v1.GetUserResponseBHZFgithub.com/Alexey-step/rocket-factory/shared/pkg/proto/user/v1;user_v1b\x06proto3"
+	"\x04user\x18\x01 \x01(\v2\x0f.common.v1.UserR\x04user2\xd0\x01\n" +
+	"\vUserService\x12a\n" +
+	"\bRegister\x12\x18.user.v1.RegisterRequest\x1a\x19.user.v1.RegisterResponse\" \x82\xd3\xe4\x93\x02\x1a:\x01*\"\x15/api/v1/user/register\x12^\n" +
+	"\aGetUser\x12\x17.user.v1.GetUserRequest\x1a\x18.user.v1.GetUserResponse\" \x82\xd3\xe4\x93\x02\x1a\x12\x18/api/v1/user/{user_uuid}BHZFgithub.com/Alexey-step/rocket-factory/shared/pkg/proto/user/v1;user_v1b\x06proto3"
 
 var (
 	file_user_v1_user_proto_rawDescOnce sync.Once

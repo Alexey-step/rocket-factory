@@ -13,9 +13,9 @@ type UserService interface {
 }
 
 type UserRepository interface {
-	Create(ctx context.Context, info model.UserInfo, password []byte) (userUUID string, err error)
+	Create(ctx context.Context, info model.UserInfo) (userUUID string, err error)
 	GetUser(ctx context.Context, userUUID string) (model.User, error)
-	GetUserByLogin(ctx context.Context, login, password string) (model.User, error)
+	GetUserByLogin(ctx context.Context, login string) (model.User, error)
 }
 
 type AuthService interface {

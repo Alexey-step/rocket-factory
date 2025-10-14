@@ -1,0 +1,35 @@
+services: # Здесь описываются контейнеры, необходимые для Payment-сервиса
+
+  app-payment-grpc-server:
+    build:
+      context: ../../..
+      # Путь к директории с Dockerfile для сборки образа Payment gRPC сервера
+      dockerfile: deploy/docker/payment/Dockerfile
+    # Собираем UFO gRPC сервер из локального Dockerfile
+
+    container_name: app-payment-grpc-server
+    # Явное имя контейнера — удобно для логов и отладки
+
+    env_file:
+      - .env
+
+    healthcheck:
+      test: [ "CMD", "grpc-health-probe", "-addr=0.0.0.0:50052" ]
+      # Проверяем готовность gRPC сервера через health checking protocol
+      interval: 10s
+      timeout: 5s
+      retries: 3
+      start_period: 15s
+      # Даём gRPC серверу время на запуск
+
+    restart: unless-stopped
+
+    networks:
+      - microservices-net
+      # Подключаемся к общей сети для взаимодействия с другими микросервисами
+
+networks: # Определение используемой сети
+  microservices-net:
+    external: true
+    # Мы не создаём новую сеть, а подключаемся к внешней, общей для всех микросервисов
+    # Её должен создать docker-compose.yml или вручную: docker network create microservices-net

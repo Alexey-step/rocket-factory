@@ -37,5 +37,5 @@ func (r *repository) GetUser(ctx context.Context, userUUID string) (model.User, 
 		return model.User{}, err
 	}
 
-	return repoConverter.UserToModel(user), nil
+	return repoConverter.UserToModel(ctx, user), nil
 }
