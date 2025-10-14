@@ -42,7 +42,7 @@ vars:
   COVERAGE_FILE: total.out
 
   MODULES: assembly inventory order payment platform iam notification
-  SERVICES: core,assembly,inventory,order,payment,iam,notification
+  SERVICES: core,assembly,inventory,order,payment,iam,notification,envoy
 
 tasks:
   install-formatters:
@@ -182,6 +182,15 @@ tasks:
       - |
         echo "🔄 Обновляем зависимости buf..."
         {{.BUF}} dep update
+
+  proto:build:all:
+    desc: Сборка всех proto с http аннотациями для Envoy
+    deps: [ install-buf, proto:install-plugins ]
+    dir: shared/proto
+    cmds:
+      - '{{.BUF}} build --as-file-descriptor-set --output "../pkg/proto/inventory/v1/inventory_descriptor.pb" . --path inventory/v1'
+      - '{{.BUF}} build --as-file-descriptor-set --output "../pkg/proto/auth/v1/auth_descriptor.pb" . --path auth/v1'
+      - '{{.BUF}} build --as-file-descriptor-set --output "../pkg/proto/user/v1/user_descriptor.pb" . --path user/v1'
 
   proto:gen:
     deps: [ install-buf, proto:install-plugins, proto:lint ]
@@ -451,6 +460,62 @@ tasks:
       - echo "[task] 🛑 Останавливаем IAM с зависимостями"
       - docker compose down --volumes
 
+  up-assembly:
+    desc: Поднять IAM сервис и все его зависимости
+    dir: deploy/compose/assembly
+    cmds:
+      - echo "[task] 🔐 Поднимаем Assembly с зависимостями"
+      - docker compose up --build --detach
+
+  down-assembly:
+    desc: Остановить и удалить Assembly сервис и все его зависимости
+    dir: deploy/compose/assembly
+    cmds:
+      - echo "[task] 🛑 Останавливаем Assembly с зависимостями"
+      - docker compose down --volumes
+
+  up-notification:
+    desc: Поднять Notification сервис и все его зависимости
+    dir: deploy/compose/notification
+    cmds:
+      - echo "[task] 🔐 Поднимаем Notification с зависимостями"
+      - docker compose up --build --detach
+
+  down-notification:
+    desc: Остановить и удалить Notification сервис и все его зависимости
+    dir: deploy/compose/notification
+    cmds:
+      - echo "[task] 🛑 Останавливаем Notification с зависимостями"
+      - docker compose down --volumes
+
+  up-payment:
+    desc: Поднять Payment сервис и все его зависимости
+    dir: deploy/compose/payment
+    cmds:
+      - echo "[task] 🔐 Поднимаем Payment с зависимостями"
+      - docker compose up --build --detach
+
+  down-payment:
+    desc: Остановить и удалить Payment сервис и все его зависимости
+    dir: deploy/compose/payment
+    cmds:
+      - echo "[task] 🛑 Останавливаем Payment с зависимостями"
+      - docker compose down --volumes
+
+  up-envoy:
+    desc: Поднять Envoy сервис и все его зависимости
+    dir: deploy/compose/envoy
+    cmds:
+      - echo "[task] 🔐 Поднимаем Envoy с зависимостями"
+      - docker compose up --build --detach
+
+  down-envoy:
+    desc: Остановить и удалить Envoy сервис и все его зависимости
+    dir: deploy/compose/envoy
+    cmds:
+      - echo "[task] 🛑 Останавливаем Envoy с зависимостями"
+      - docker compose down --volumes
+
   up-all:
     desc: Поднять все сервисы по очереди вместе с зависимостями
     cmds:
@@ -458,6 +523,10 @@ tasks:
       - task up-inventory
       - task up-order
       - task up-iam
+      - task up-assembly
+      - task up-notification
+      - task up-payment
+      - task up-envoy
 
   down-all:
     desc: Остановить и удалить все сервисы по очереди вместе с зависимостями
@@ -466,6 +535,10 @@ tasks:
       - task down-inventory
       - task down-order
       - task down-iam
+      - task down-assembly
+      - task down-notification
+      - task down-payment
+      - task down-envoy
 
   test-iam:
     desc: "🔐 Тестирование IAM сервиса (регистрация, логин, whoami)"
@@ -842,20 +915,181 @@ tasks:
         fi
 
   test-api:
-    desc: "🚀 Полное тестирование API: проверка аутентификации + функциональные тесты"
-    deps: [ grpcurl:install, test-iam ]
+    desc: "🚀 Полный цикл тестирования API через curl команды"
     silent: true
     cmds:
-      - task: test-api-auth-rejection
-      - task: test-api-with-auth
       - |
+        echo "🚀 Полный цикл тестирования API через curl команды"
+        echo "=================================================="
+        
+        # Генерируем уникальные данные для пользователя
+        TIMESTAMP=$(date +%s)
+        USER_EMAIL="test-user-$TIMESTAMP@example.com"
+        USER_LOGIN="testuser$TIMESTAMP"
+        USER_PASSWORD="SecurePassword123!"
+        USER_NAME="Test User $TIMESTAMP"
+        
+        echo "📝 Шаг 1: Регистрация пользователя"
+        echo "curl -X POST \"http://localhost:8080/api/v1/user/register\""
+        REGISTER_RESPONSE=$(curl -s -X POST "http://localhost:8080/api/v1/user/register" \
+          -H "Content-Type: application/json" \
+          -d "{
+            \"info\": {
+              \"info\": {
+                \"name\": \"$USER_NAME\",
+                \"email\": \"$USER_EMAIL\",
+                \"login\": \"$USER_LOGIN\"
+              },
+              \"password\": \"$USER_PASSWORD\"
+            }
+          }")
+        
+        if [[ -z "$REGISTER_RESPONSE" || "$REGISTER_RESPONSE" == *"error"* ]]; then
+          echo "❌ Не удалось зарегистрировать пользователя."
+          echo "🔍 Ответ: $REGISTER_RESPONSE"
+          exit 1
+        fi
+        
+        # Извлекаем UUID пользователя
+        USER_UUID=$(echo $REGISTER_RESPONSE | grep -o '"user_uuid":"[^"]*' | cut -d'"' -f4)
+        if [ -z "$USER_UUID" ]; then
+          USER_UUID=$(echo $REGISTER_RESPONSE | grep -o '"user_uuid": "[^"]*' | cut -d'"' -f4)
+        fi
+        if [ -z "$USER_UUID" ]; then
+          echo "❌ Не удалось извлечь UUID пользователя"
+          echo "🔍 Ответ: $REGISTER_RESPONSE"
+          exit 1
+        fi
+        echo "✅ Пользователь зарегистрирован: $USER_LOGIN (UUID: $USER_UUID)"
+        
         echo
-        echo "🎉🎉🎉 ПОЛНОЕ ТЕСТИРОВАНИЕ API ЗАВЕРШЕНО УСПЕШНО! 🎉🎉🎉"
+        echo "🔑 Шаг 2: Логин пользователя"
+        echo "curl -X POST \"http://localhost:8080/api/v1/auth/login\""
+        LOGIN_RESPONSE=$(curl -s -X POST "http://localhost:8080/api/v1/auth/login" \
+          -H "Content-Type: application/json" \
+          -d "{
+            \"login\": \"$USER_LOGIN\",
+            \"password\": \"$USER_PASSWORD\"
+          }")
+        
+        if [[ -z "$LOGIN_RESPONSE" || "$LOGIN_RESPONSE" == *"error"* ]]; then
+          echo "❌ Не удалось войти в систему."
+          echo "🔍 Ответ: $LOGIN_RESPONSE"
+          exit 1
+        fi
+        
+        # Извлекаем session UUID
+        SESSION_UUID=$(echo $LOGIN_RESPONSE | grep -o '"session_uuid":"[^"]*' | cut -d'"' -f4)
+        if [ -z "$SESSION_UUID" ]; then
+          SESSION_UUID=$(echo $LOGIN_RESPONSE | grep -o '"session_uuid": "[^"]*' | cut -d'"' -f4)
+        fi
+        if [ -z "$SESSION_UUID" ]; then
+          echo "❌ Не удалось извлечь session UUID"
+          echo "🔍 Ответ: $LOGIN_RESPONSE"
+          exit 1
+        fi
+        echo "✅ Пользователь вошел в систему. Session UUID: $SESSION_UUID"
+        
         echo
-        echo "✅ Тесты отклонения неавторизованных запросов - прошли"
-        echo "✅ Тесты API с корректной аутентификацией - прошли"  
+        echo "👤 Шаг 3: Проверка whoami"
+        echo "curl -X POST \"http://localhost:8080/api/v1/auth/whoami\" -H \"session-uuid: <session>\""
+        WHOAMI_RESPONSE=$(curl -s -X POST "http://localhost:8080/api/v1/auth/whoami" \
+          -H "Content-Type: application/json" \
+          -H "session-uuid: $SESSION_UUID" \
+          -d "{\"session_uuid\": \"$SESSION_UUID\"}")
+        
+        if [[ -z "$WHOAMI_RESPONSE" || "$WHOAMI_RESPONSE" == *"error"* ]]; then
+          echo "❌ Не удалось получить информацию о пользователе."
+          echo "🔍 Ответ: $WHOAMI_RESPONSE"
+          exit 1
+        fi
+        echo "✅ Whoami работает корректно"
+        
         echo
-        echo "🔐 Все основные сценарии API работают корректно!"
+        echo "📦 Шаг 4: Получение списка деталей"
+        echo "curl -X GET \"http://localhost:8080/api/v1/inventory/listParts\" -H \"session-uuid: <session>\""
+        PARTS_RESPONSE=$(curl -s -X GET "http://localhost:8080/api/v1/inventory/listParts" \
+          -H "session-uuid: $SESSION_UUID")
+        
+        if [[ -z "$PARTS_RESPONSE" || "$PARTS_RESPONSE" == *"error"* ]]; then
+          echo "❌ Не удалось получить список деталей."
+          echo "🔍 Ответ: $PARTS_RESPONSE"
+          exit 1
+        fi
+        
+        # Извлекаем UUID первой детали
+        PART_UUID=$(echo $PARTS_RESPONSE | grep -o '"uuid":"[^"]*' | head -1 | cut -d'"' -f4)
+        if [ -z "$PART_UUID" ]; then
+          PART_UUID=$(echo $PARTS_RESPONSE | grep -o '"uuid": "[^"]*' | head -1 | cut -d'"' -f4)
+        fi
+        if [ -z "$PART_UUID" ]; then
+          echo "❌ Не удалось найти UUID детали"
+          echo "🔍 Ответ: $PARTS_RESPONSE"
+          exit 1
+        fi
+        echo "✅ Получен список деталей, первая UUID: $PART_UUID"
+        
+        echo
+        echo "📝 Шаг 5: Создание заказа"
+        echo "curl -X POST \"http://localhost:8080/api/v1/orders\" -H \"session-uuid: <session>\""
+        ORDER_RESPONSE=$(curl -s -X POST "http://localhost:8080/api/v1/orders" \
+          -H "Content-Type: application/json" \
+          -H "session-uuid: $SESSION_UUID" \
+          -d "{
+            \"user_uuid\": \"$USER_UUID\",
+            \"part_uuids\": [\"$PART_UUID\"]
+          }")
+        
+        if [[ -z "$ORDER_RESPONSE" || "$ORDER_RESPONSE" == *"error"* ]]; then
+          echo "❌ Не удалось создать заказ."
+          echo "🔍 Ответ: $ORDER_RESPONSE"
+          exit 1
+        fi
+        
+        # Извлекаем UUID заказа
+        ORDER_UUID=$(echo $ORDER_RESPONSE | grep -o '"order_uuid":"[^"]*' | cut -d'"' -f4)
+        if [ -z "$ORDER_UUID" ]; then
+          ORDER_UUID=$(echo $ORDER_RESPONSE | grep -o '"order_uuid": "[^"]*' | cut -d'"' -f4)
+        fi
+        if [ -z "$ORDER_UUID" ]; then
+          echo "❌ Не удалось извлечь UUID заказа"
+          echo "🔍 Ответ: $ORDER_RESPONSE"
+          exit 1
+        fi
+        echo "✅ Создан заказ с UUID: $ORDER_UUID"
+        
+        echo
+        echo "💰 Шаг 6: Оплата заказа"
+        echo "curl -X POST \"http://localhost:8080/api/v1/orders/$ORDER_UUID/pay\" -H \"session-uuid: <session>\""
+        PAY_RESPONSE=$(curl -s -X POST "http://localhost:8080/api/v1/orders/$ORDER_UUID/pay" \
+          -H "Content-Type: application/json" \
+          -H "session-uuid: $SESSION_UUID" \
+          -d "{
+            \"payment_method\": \"CARD\"
+          }")
+        
+        if [[ "$PAY_RESPONSE" == *"error"* ]]; then
+          echo "❌ Ошибка при оплате заказа."
+          echo "🔍 Ответ: $PAY_RESPONSE"
+          exit 1
+        fi
+        echo "✅ Заказ успешно оплачен"
+        
+        echo
+        echo "🎉 ПОЛНЫЙ ЦИКЛ ТЕСТИРОВАНИЯ ЗАВЕРШЕН УСПЕШНО!"
+        echo "=================================================="
+        echo "✅ Регистрация - OK"
+        echo "✅ Логин - OK"
+        echo "✅ Whoami - OK"
+        echo "✅ Получение деталей - OK"
+        echo "✅ Создание заказа - OK"
+        echo "✅ Оплата заказа - OK"
+        echo
+        echo "📋 Использованные данные:"
+        echo "   User UUID: $USER_UUID"
+        echo "   Session UUID: $SESSION_UUID"
+        echo "   Order UUID: $ORDER_UUID"
+        echo "   Part UUID: $PART_UUID"
 
   env:install-envsubst:
     desc: "Устанавливает envsubst в bin/"

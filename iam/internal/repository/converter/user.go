@@ -1,15 +1,22 @@
 package converter
 
 import (
+	"context"
+	"encoding/json"
+
+	"go.uber.org/zap"
+
 	"github.com/Alexey-step/rocket-factory/iam/internal/model"
 	repoModel "github.com/Alexey-step/rocket-factory/iam/internal/repository/model"
+	"github.com/Alexey-step/rocket-factory/platform/pkg/logger"
 )
 
-func UserToModel(user repoModel.User) model.User {
+func UserToModel(ctx context.Context, user repoModel.User) model.User {
 	info := model.UserInfo{
 		Login:               user.Login,
 		Email:               user.Email,
-		NotificationMethods: notificationMethodsToModel(user.NotificationMethods),
+		NotificationMethods: NotificationMethodsToModel(ctx, user.NotificationMethods),
+		Password:            user.Password,
 	}
 
 	return model.User{
@@ -20,47 +27,30 @@ func UserToModel(user repoModel.User) model.User {
 	}
 }
 
-func notificationMethodToModel(notificationMethod repoModel.NotificationMethod) model.NotificationMethod {
-	return model.NotificationMethod{
-		ProviderName: notificationMethod.ProviderName,
-		Target:       notificationMethod.Target,
+func NotificationMethodsToModel(ctx context.Context, methods []byte) []model.NotificationMethod {
+	var notificationMethods []model.NotificationMethod
+	err := json.Unmarshal(methods, &notificationMethods)
+	if err != nil {
+		logger.Error(ctx, "failed to unmarshal notification methods", zap.Error(err))
 	}
+	return notificationMethods
 }
 
-func notificationMethodsToModel(methods []repoModel.NotificationMethod) []model.NotificationMethod {
-	notifyMethods := make([]model.NotificationMethod, len(methods))
-	for i, m := range methods {
-		notifyMethods[i] = notificationMethodToModel(m)
-	}
-	return notifyMethods
-}
-
-func UserToRepo(user model.User) repoModel.User {
-	notifyMethods := make([]repoModel.NotificationMethod, len(user.Info.NotificationMethods))
-	for i, m := range user.Info.NotificationMethods {
-		notifyMethods[i] = notificationMethodToRepo(m)
-	}
+func UserToRepo(ctx context.Context, user model.User) repoModel.User {
 	return repoModel.User{
 		UUID:                user.UUID,
 		Login:               user.Info.Login,
 		Email:               user.Info.Email,
-		NotificationMethods: notifyMethods,
+		NotificationMethods: NotificationMethodsToRepo(ctx, user.Info.NotificationMethods),
 		CreatedAt:           user.CreatedAt,
 		UpdatedAt:           user.UpdatedAt,
 	}
 }
 
-func notificationMethodToRepo(notificationMethod model.NotificationMethod) repoModel.NotificationMethod {
-	return repoModel.NotificationMethod{
-		ProviderName: notificationMethod.ProviderName,
-		Target:       notificationMethod.Target,
+func NotificationMethodsToRepo(ctx context.Context, methods []model.NotificationMethod) []byte {
+	notificationMethods, err := json.Marshal(methods)
+	if err != nil {
+		logger.Error(ctx, "failed to marshal notification methods", zap.Error(err))
 	}
-}
-
-func NotificationMethodsToRepo(methods []model.NotificationMethod) []repoModel.NotificationMethod {
-	notifyMethods := make([]repoModel.NotificationMethod, len(methods))
-	for i, m := range methods {
-		notifyMethods[i] = notificationMethodToRepo(m)
-	}
-	return notifyMethods
+	return notificationMethods
 }

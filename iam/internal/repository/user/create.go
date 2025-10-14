@@ -12,31 +12,31 @@ import (
 	repoModel "github.com/Alexey-step/rocket-factory/iam/internal/repository/model"
 )
 
-func (r *repository) Create(ctx context.Context, info model.UserInfo, password []byte) (userUUID string, err error) {
+func (r *repository) Create(ctx context.Context, info model.UserInfo) (userUUID string, err error) {
 	user := repoModel.User{
 		UUID:                uuid.NewString(),
 		Login:               info.Login,
 		Email:               info.Email,
-		NotificationMethods: repoConverter.NotificationMethodsToRepo(info.NotificationMethods),
+		NotificationMethods: repoConverter.NotificationMethodsToRepo(ctx, info.NotificationMethods),
 		CreatedAt:           time.Now(),
-		Password:            password,
+		Password:            info.Password,
 	}
 
 	query, args, err := sq.Insert("users").
 		PlaceholderFormat(sq.Dollar).
 		Columns("uuid", "login", "email", "notification_methods", "created_at", "password_hash").
-		Values(user.UUID, user.Login, user.Email, user.NotificationMethods, user.CreatedAt, password).
+		Values(user.UUID, user.Login, user.Email, user.NotificationMethods, user.CreatedAt, user.Password).
 		Suffix("RETURNING uuid").
 		ToSql()
 	if err != nil {
 		return "", err
 	}
 
-	var uuid string
-	err = r.db.QueryRow(ctx, query, args...).Scan(&uuid)
+	var userUUIDResult string
+	err = r.db.QueryRow(ctx, query, args...).Scan(&userUUIDResult)
 	if err != nil {
 		return "", err
 	}
 
-	return uuid, nil
+	return userUUIDResult, nil
 }

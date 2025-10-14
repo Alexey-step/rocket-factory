@@ -57,6 +57,30 @@ services: # Раздел, в котором описываются все кон
       - microservices-net
       # Redis подключается к той же общей сети, что и PostgreSQL, и остальные сервисы
 
+  # IAM gRPC сервер (аутентификация + External Authorization)
+  app-iam-grpc-server:
+    build:
+      context: ../../..
+      dockerfile: deploy/docker/iam/Dockerfile
+    container_name: app-iam-grpc-server
+
+    env_file:
+      - .env
+
+    ports:
+      - "50053:50053" # Порт для gRPC сервиса IAM
+    healthcheck:
+      test: ["CMD", "/bin/grpc-health-probe", "-addr=0.0.0.0:50053"]
+      interval: 10s
+      timeout: 5s
+      retries: 3
+      start_period: 15s
+    restart: unless-stopped
+
+    networks:
+      - microservices-net
+      # Подключаемся к общей сети для взаимодействия с другими микросервисами
+
 volumes: # Раздел томов — Docker сам создаст и будет управлять этим хранилищем данных
   postgres_iam_data:
   # Том для хранения данных PostgreSQL (таблицы, индексы и т.д.)

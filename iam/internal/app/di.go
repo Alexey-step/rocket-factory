@@ -4,6 +4,7 @@ import (
 	"context"
 	"fmt"
 
+	authV3 "github.com/envoyproxy/go-control-plane/envoy/service/auth/v3"
 	redigo "github.com/gomodule/redigo/redis"
 	"github.com/jackc/pgx/v5/pgxpool"
 	"github.com/jackc/pgx/v5/stdlib"
@@ -30,6 +31,7 @@ import (
 type diContainer struct {
 	userV1API userV1.UserServiceServer
 	authV1Api authV1.AuthServiceServer
+	authV3Api authV3.AuthorizationServer
 
 	userService service.UserService
 	authService service.AuthService
@@ -62,6 +64,14 @@ func (d *diContainer) AuthV1API(ctx context.Context) authV1.AuthServiceServer {
 	}
 
 	return d.authV1Api
+}
+
+func (d *diContainer) AuthV3API(ctx context.Context) authV3.AuthorizationServer {
+	if d.authV3Api == nil {
+		d.authV3Api = authV1API.NewAPI(d.AuthService(ctx))
+	}
+
+	return d.authV3Api
 }
 
 func (d *diContainer) UserService(ctx context.Context) service.UserService {

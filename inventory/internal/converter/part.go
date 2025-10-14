@@ -78,6 +78,10 @@ func metadataToProto(meta map[string]model.Metadata) map[string]*inventoryV1.Val
 }
 
 func PartsFilterToModel(filter *inventoryV1.PartsFilter) model.PartsFilter {
+	if filter == nil {
+		return model.PartsFilter{}
+	}
+
 	partsUUIDs := make([]string, 0, len(filter.Uuids))
 	if len(filter.Uuids) > 0 {
 		partsUUIDs = filter.Uuids

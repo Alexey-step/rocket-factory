@@ -13,8 +13,8 @@ import (
 )
 
 func (a *api) Register(ctx context.Context, req *userV1.RegisterRequest) (*userV1.RegisterResponse, error) {
-	userInfo := converter.UserInfoToModel(req.GetInfo().Info)
-	userUUID, err := a.service.Register(ctx, userInfo, req.GetInfo().Password)
+	userInfo := converter.UserInfoToModel(req.GetInfo().GetInfo())
+	userUUID, err := a.service.Register(ctx, userInfo, req.GetInfo().GetPassword())
 	if err != nil {
 		logger.Error(ctx, "error while registering user",
 			zap.Error(err),

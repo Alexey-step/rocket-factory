@@ -7,13 +7,13 @@ type User struct {
 	Info      UserInfo   // Базовая информация
 	CreatedAt time.Time  // Дата создания
 	UpdatedAt *time.Time // Дата обновления
-	Password  []byte     // Хэш пароля
 }
 
 type UserInfo struct {
 	Login               string               // Логин
 	Email               string               // Email
 	NotificationMethods []NotificationMethod //	Каналы уведомлений
+	Password            string
 }
 
 type NotificationMethod struct {

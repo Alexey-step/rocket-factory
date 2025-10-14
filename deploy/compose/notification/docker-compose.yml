@@ -1,0 +1,26 @@
+services: # Здесь описываются контейнеры, необходимые для Notification-сервиса
+
+  app-notification-grpc-server:
+    build:
+      context: ../../..
+      # Путь к директории с Dockerfile для сборки образа Notification gRPC сервера
+      dockerfile: deploy/docker/notification/Dockerfile
+    # Собираем UFO gRPC сервер из локального Dockerfile
+
+    container_name: app-notification-grpc-server
+    # Явное имя контейнера — удобно для логов и отладки
+
+    env_file:
+      - .env
+
+    restart: unless-stopped
+
+    networks:
+      - microservices-net
+      # Подключаемся к общей сети для взаимодействия с другими микросервисами
+
+networks: # Определение используемой сети
+  microservices-net:
+    external: true
+    # Мы не создаём новую сеть, а подключаемся к внешней, общей для всех микросервисов
+    # Её должен создать docker-compose.yml или вручную: docker network create microservices-net

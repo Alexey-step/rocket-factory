@@ -4,13 +4,24 @@ package auth.v1;
 
 import "common/v1/user.proto";
 import "common/v1/session.proto";
+import "google/api/annotations.proto";
 
 option go_package = "github.com/Alexey-step/rocket-factory/shared/pkg/proto/auth/v1;auth_v1";
 
 
 service AuthService {
-  rpc Login(LoginRequest) returns (LoginResponse);
-  rpc Whoami(WhoamiRequest) returns (WhoamiResponse);
+  rpc Login(LoginRequest) returns (LoginResponse) {
+    option (google.api.http) = {
+      post: "/api/v1/auth/login"
+      body: "*"
+    };
+  };
+  rpc Whoami(WhoamiRequest) returns (WhoamiResponse) {
+    option (google.api.http) = {
+      post: "/api/v1/auth/whoami"
+      body: "*"
+    };
+  };
 }
 
 // LoginRequest представляет запрос на логин пользователя

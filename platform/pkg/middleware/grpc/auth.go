@@ -53,6 +53,17 @@ func (i *AuthInterceptor) Unary() grpc.UnaryServerInterceptor {
 		info *grpc.UnaryServerInfo,
 		handler grpc.UnaryHandler,
 	) (any, error) {
+		// Пропускаем аутентификацию для gRPC health check
+		if info.FullMethod == "/grpc.health.v1.Health/Check" ||
+			info.FullMethod == "/grpc.health.v1.Health/Watch" {
+			return handler(ctx, req)
+		}
+
+		// Пропускаем аутентификацию для получения списка частей
+		if info.FullMethod == "/inventory.v1.InventoryService/ListParts" {
+			return handler(ctx, req)
+		}
+
 		authCtx, err := i.authenticate(ctx)
 		if err != nil {
 			return nil, err

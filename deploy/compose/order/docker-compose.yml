@@ -35,6 +35,38 @@ services: # Раздел, описывающий контейнеры, кото�
       - microservices-net
       # Подключаемся к общей сети, чтобы другие микросервисы (например, Order-сервис) могли найти этот контейнер по имени "postgres-order"
 
+  app-order-http-server: # Контейнер с самим Order-сервисом, написанным на Go
+    build:
+      context: ../../..
+      # Путь к директории с Dockerfile для сборки образа Order-сервиса
+      dockerfile: deploy/docker/order/Dockerfile
+    # Собираем weather API из локального Dockerfile
+
+    container_name: app-order-http-server
+    # Явное имя контейнера — удобно для логов и отладки
+
+    depends_on:
+      postgres-order:
+        condition: service_healthy
+
+    env_file:
+      - .env
+
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://0.0.0.0:8082/health"]
+      # Проверяем готовность API через health endpoint
+      interval: 10s
+      timeout: 5s
+      retries: 3
+      start_period: 15s
+      # Даём приложению время на запуск
+
+    restart: unless-stopped
+
+    networks:
+      - microservices-net
+      # Подключаемся к общей сети для взаимодействия с другими микросервисами
+
 volumes: # Раздел с томами — определяем, какие дисковые ресурсы создаёт и использует Docker
   postgres_order_data:
   # Именованный том для хранения данных Order-сервиса в PostgreSQL

@@ -14,7 +14,9 @@ func (s *service) Register(ctx context.Context, userInfo model.UserInfo, passwor
 		return "", err
 	}
 
-	userUUID, err := s.userRepository.Create(ctx, userInfo, hashedPassword)
+	userInfo.Password = string(hashedPassword)
+
+	userUUID, err := s.userRepository.Create(ctx, userInfo)
 	if err != nil {
 		return "", err
 	}

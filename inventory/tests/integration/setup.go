@@ -46,7 +46,7 @@ func setupTestEnvironment(ctx context.Context) *TestEnvironment {
 	// Шаг 1: Создаём общую Docker-сеть
 	generatedNetwork, err := network.NewNetwork(ctx, projectName)
 	if err != nil {
-		logger.Fatal(ctx, "❌ Не удалось создать сеть для тестов",
+		logger.Error(ctx, "❌ Не удалось создать сеть для тестов",
 			zap.Error(err))
 	}
 
@@ -72,7 +72,7 @@ func setupTestEnvironment(ctx context.Context) *TestEnvironment {
 		mongo.WithLogger(logger.Logger()))
 	if err != nil {
 		cleanupTestEnvironment(ctx, &TestEnvironment{Network: generatedNetwork})
-		logger.Fatal(ctx, "не удалось запустить контейнер MongoDB", zap.Error(err))
+		logger.Error(ctx, "не удалось запустить контейнер MongoDB", zap.Error(err))
 	}
 	logger.Info(ctx, "✅ Контейнер MongoDB успешно запущен")
 
@@ -100,7 +100,7 @@ func setupTestEnvironment(ctx context.Context) *TestEnvironment {
 		app.WithLogger(logger.Logger()))
 	if err != nil {
 		cleanupTestEnvironment(ctx, &TestEnvironment{Network: generatedNetwork, Mongo: generatedMongo})
-		logger.Fatal(ctx, "не удалось запустить контейнер приложения", zap.Error(err))
+		logger.Error(ctx, "не удалось запустить контейнер приложения", zap.Error(err))
 	}
 	logger.Info(ctx, "✅ Контейнер приложения успешно запущен")
 
@@ -116,7 +116,7 @@ func setupTestEnvironment(ctx context.Context) *TestEnvironment {
 func getEnvWithLogging(ctx context.Context, key string) string {
 	value := os.Getenv(key)
 	if value == "" {
-		logger.Warn(ctx, "Переменная окружения не установлена", zap.String("key", key))
+		logger.Error(ctx, "Переменная окружения не установлена", zap.String("key", key))
 	}
 
 	return value

@@ -1,4 +1,31 @@
 services: # Здесь описываются контейнеры, необходимые для Inventory-сервиса
+  app-inventory-grpc-server:
+    build:
+      context: ../../..
+      # Путь к директории с Dockerfile для сборки образа Inventory gRPC сервера
+      dockerfile: deploy/docker/inventory/Dockerfile
+    # Собираем UFO gRPC сервер из локального Dockerfile
+
+    container_name: app-inventory-grpc-server
+    # Явное имя контейнера — удобно для логов и отладки
+
+    env_file:
+      - .env
+
+    healthcheck:
+      test: [ "CMD", "grpc-health-probe", "-addr=0.0.0.0:50051" ]
+      # Проверяем готовность gRPC сервера через health checking protocol
+      interval: 10s
+      timeout: 5s
+      retries: 3
+      start_period: 15s
+      # Даём gRPC серверу время на запуск
+
+    restart: unless-stopped
+
+    networks:
+      - microservices-net
+      # Подключаемся к общей сети для взаимодействия с другими микросервисами
 
   mongo-inventory: # Контейнер с MongoDB — используется для хранения данных об инвентаре (например, запчасти, компоненты)
     image: ${MONGO_IMAGE_NAME} # Образ MongoDB версии 7.0.5
@@ -38,6 +65,7 @@ services: # Здесь описываются контейнеры, необхо
     networks:
       - microservices-net
       # Подключаем контейнер к общей сети всех микросервисов, чтобы они могли взаимодействовать между собой по имени
+
 
 volumes: # Раздел с томами — определяем хранилище, которое создаст Docker
   mongo_inventory_data:

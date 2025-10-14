@@ -4,13 +4,22 @@ package inventory.v1;
 
 import "google/protobuf/timestamp.proto";
 import "validate/validate.proto";
+import "google/api/annotations.proto";
 
 option go_package = "github.com/Alexey-step/rocket-factory/shared/pkg/proto/inventory/v1;inventory_v1";
 
 service InventoryService {
-  rpc GetPart (GetPartRequest) returns (GetPartResponse);
+  rpc GetPart (GetPartRequest) returns (GetPartResponse) {
+    option (google.api.http) = {
+      get: "/api/v1/inventory/{uuid}"
+    };
+  };
 
-  rpc ListParts(ListPartsRequest) returns (ListPartsResponse);
+  rpc ListParts(ListPartsRequest) returns (ListPartsResponse) {
+    option (google.api.http) = {
+      get: "/api/v1/inventory/listParts"
+    };
+  };
 }
 
 // GetPartRequest представляет запрос на получение детали по UUID.

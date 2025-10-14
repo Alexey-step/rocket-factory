@@ -7,14 +7,14 @@ import (
 )
 
 type User struct {
-	ID                  primitive.ObjectID   `json:"_id,omitempty"`
-	UUID                string               `json:"uuid"`
-	Login               string               `json:"login"`                // Логин
-	Email               string               `json:"email"`                // Email
-	NotificationMethods []NotificationMethod `json:"notification_methods"` //	Каналы уведомлений
-	CreatedAt           time.Time            `json:"created_at"`
-	UpdatedAt           *time.Time           `json:"updated_at,omitempty"`
-	Password            []byte               `json:"password_hash"`
+	ID                  primitive.ObjectID `db:"_id,omitempty"`
+	UUID                string             `db:"uuid"`
+	Login               string             `db:"login"`                // Логин
+	Email               string             `db:"email"`                // Email
+	NotificationMethods []byte             `db:"notification_methods"` //	Каналы уведомлений
+	CreatedAt           time.Time          `db:"created_at"`
+	UpdatedAt           *time.Time         `db:"updated_at,omitempty"`
+	Password            string             `db:"password_hash"`
 }
 
 type NotificationMethod struct {

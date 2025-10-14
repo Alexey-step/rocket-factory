@@ -11,6 +11,7 @@ import (
 	"github.com/pkg/errors"
 	"go.uber.org/zap"
 
+	"github.com/Alexey-step/rocket-factory/order/internal/api/health"
 	"github.com/Alexey-step/rocket-factory/order/internal/config"
 	orderMetrics "github.com/Alexey-step/rocket-factory/order/internal/metrics"
 	metricsMiddleware "github.com/Alexey-step/rocket-factory/order/internal/middlewares"
@@ -146,16 +147,22 @@ func (a *App) initHTTPServer(ctx context.Context) error {
 
 	authMiddleware := customMiddleware.NewAuthMiddleware(a.diContainer.IamClient(ctx))
 
-	// Добавляем middleware
+	// Добавляем базовые middleware для всех запросов
 	r.Use(middleware.Logger)
 	r.Use(middleware.Recoverer)
-	r.Use(authMiddleware.Handle)
 	r.Use(metricsMiddleware.MetricsMiddleware)
 	r.Use(tracing.HTTPHandlerMiddleware("order-service"))
 	r.Use(customMiddleware.RequestLogger)
 	r.Use(middleware.Timeout(10 * time.Second))
 
-	r.Mount("/", serv)
+	// Публичные эндпоинты (без аутентификации)
+	r.Get("/health", health.Handler)
+
+	// Защищенные эндпоинты (с аутентификацией)
+	r.Group(func(r chi.Router) {
+		r.Use(authMiddleware.Handle)
+		r.Mount("/", serv)
+	})
 
 	a.httpServer = &http.Server{
 		Addr:        config.AppConfig().OrderHTTP.Address(),

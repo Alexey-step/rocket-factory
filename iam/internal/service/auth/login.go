@@ -11,12 +11,12 @@ import (
 )
 
 func (s *service) Login(ctx context.Context, login, password string) (string, error) {
-	user, err := s.userRepository.GetUserByLogin(ctx, login, password)
+	user, err := s.userRepository.GetUserByLogin(ctx, login)
 	if err != nil {
 		return "", model.ErrInvalidCredentials
 	}
 
-	err = bcrypt.CompareHashAndPassword(user.Password, []byte(password))
+	err = bcrypt.CompareHashAndPassword([]byte(user.Info.Password), []byte(password))
 	if err != nil {
 		return "", err
 	}

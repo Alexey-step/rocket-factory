@@ -10,7 +10,7 @@ import (
 	repoModel "github.com/Alexey-step/rocket-factory/iam/internal/repository/model"
 )
 
-func (r *repository) GetUserByLogin(ctx context.Context, login, password string) (model.User, error) {
+func (r *repository) GetUserByLogin(ctx context.Context, login string) (model.User, error) {
 	query, args, err := sq.Select(
 		"uuid",
 		"login",
@@ -41,5 +41,5 @@ func (r *repository) GetUserByLogin(ctx context.Context, login, password string)
 		return model.User{}, err
 	}
 
-	return repoConverter.UserToModel(user), nil
+	return repoConverter.UserToModel(ctx, user), nil
 }
