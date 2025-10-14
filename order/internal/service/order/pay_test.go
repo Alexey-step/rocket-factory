@@ -41,10 +41,10 @@ func TestPayOrderSuccess(t *testing.T) {
 		orderProducer,
 	)
 
-	orderRepository.On("GetOrder", ctx, orderUUID).Return(order, nil).Once()
-	paymentClient.On("PayOrder", ctx, order.UserUUID, orderUUID, paymentMethod).Return(transactionUUID, nil).Once()
-	orderProducer.On("ProduceOrderPaid", ctx, mock.AnythingOfType("model.OrderPaid")).Return(nil).Once()
-	orderRepository.On("UpdateOrder", ctx, orderUUID, orderInfo).Return(nil).Once()
+	orderRepository.On("GetOrder", mock.Anything, orderUUID).Return(order, nil).Once()
+	paymentClient.On("PayOrder", mock.Anything, order.UserUUID, orderUUID, paymentMethod).Return(transactionUUID, nil).Once()
+	orderProducer.On("ProduceOrderPaid", mock.Anything, mock.AnythingOfType("model.OrderPaid")).Return(nil).Once()
+	orderRepository.On("UpdateOrder", mock.Anything, orderUUID, orderInfo).Return(nil).Once()
 
 	resp, err := orderService.PayOrder(ctx, orderUUID, paymentMethod)
 	assert.NoError(t, err)
@@ -69,7 +69,7 @@ func TestPayOrderFailGetOrder(t *testing.T) {
 		orderProducer,
 	)
 
-	orderRepository.On("GetOrder", ctx, orderUUID).Return(model.OrderData{}, expectedErr).Once()
+	orderRepository.On("GetOrder", mock.Anything, orderUUID).Return(model.OrderData{}, expectedErr).Once()
 
 	resp, err := orderService.PayOrder(ctx, orderUUID, paymentMethod)
 	assert.Error(t, err)
@@ -97,8 +97,8 @@ func TestPayOrderFail(t *testing.T) {
 		orderProducer,
 	)
 
-	orderRepository.On("GetOrder", ctx, orderUUID).Return(order, nil).Once()
-	paymentClient.On("PayOrder", ctx, order.UserUUID, orderUUID, paymentMethod).Return("", expectedErr).Once()
+	orderRepository.On("GetOrder", mock.Anything, orderUUID).Return(order, nil).Once()
+	paymentClient.On("PayOrder", mock.Anything, order.UserUUID, orderUUID, paymentMethod).Return("", expectedErr).Once()
 
 	resp, err := orderService.PayOrder(ctx, orderUUID, paymentMethod)
 	assert.Error(t, err)
@@ -126,8 +126,8 @@ func TestPayOrderInternalErr(t *testing.T) {
 		orderProducer,
 	)
 
-	orderRepository.On("GetOrder", ctx, orderUUID).Return(order, nil).Once()
-	paymentClient.On("PayOrder", ctx, order.UserUUID, orderUUID, paymentMethod).Return("", expectedErr).Once()
+	orderRepository.On("GetOrder", mock.Anything, orderUUID).Return(order, nil).Once()
+	paymentClient.On("PayOrder", mock.Anything, order.UserUUID, orderUUID, paymentMethod).Return("", expectedErr).Once()
 
 	resp, err := orderService.PayOrder(ctx, orderUUID, paymentMethod)
 	assert.Error(t, err)
@@ -155,8 +155,8 @@ func TestPayOrderNotFoundErr(t *testing.T) {
 		orderProducer,
 	)
 
-	orderRepository.On("GetOrder", ctx, orderUUID).Return(order, nil).Once()
-	paymentClient.On("PayOrder", ctx, order.UserUUID, orderUUID, paymentMethod).Return("", expectedErr).Once()
+	orderRepository.On("GetOrder", mock.Anything, orderUUID).Return(order, nil).Once()
+	paymentClient.On("PayOrder", mock.Anything, order.UserUUID, orderUUID, paymentMethod).Return("", expectedErr).Once()
 
 	resp, err := orderService.PayOrder(ctx, orderUUID, paymentMethod)
 	assert.Error(t, err)
@@ -184,7 +184,7 @@ func TestPayOrderConflictOrderStatusPaidErr(t *testing.T) {
 		orderProducer,
 	)
 
-	orderRepository.On("GetOrder", ctx, orderUUID).Return(order, nil).Once()
+	orderRepository.On("GetOrder", mock.Anything, orderUUID).Return(order, nil).Once()
 
 	resp, err := orderService.PayOrder(ctx, orderUUID, paymentMethod)
 	assert.Error(t, err)
@@ -212,7 +212,7 @@ func TestPayOrderConflictOrderStatusCanceledErr(t *testing.T) {
 		orderProducer,
 	)
 
-	orderRepository.On("GetOrder", ctx, orderUUID).Return(order, nil).Once()
+	orderRepository.On("GetOrder", mock.Anything, orderUUID).Return(order, nil).Once()
 
 	resp, err := orderService.PayOrder(ctx, orderUUID, paymentMethod)
 	assert.Error(t, err)
@@ -240,7 +240,7 @@ func TestPayOrderConflictOrderStatusUnknownErr(t *testing.T) {
 		orderProducer,
 	)
 
-	orderRepository.On("GetOrder", ctx, orderUUID).Return(order, nil).Once()
+	orderRepository.On("GetOrder", mock.Anything, orderUUID).Return(order, nil).Once()
 
 	resp, err := orderService.PayOrder(ctx, orderUUID, paymentMethod)
 	assert.Error(t, err)
@@ -275,9 +275,9 @@ func TestPayOrderUpdateErr(t *testing.T) {
 		orderProducer,
 	)
 
-	orderRepository.On("GetOrder", ctx, orderUUID).Return(order, nil).Once()
-	paymentClient.On("PayOrder", ctx, order.UserUUID, orderUUID, paymentMethod).Return(transactionUUID, nil).Once()
-	orderRepository.On("UpdateOrder", ctx, orderUUID, orderInfo).Return(expectedErr).Once()
+	orderRepository.On("GetOrder", mock.Anything, orderUUID).Return(order, nil).Once()
+	paymentClient.On("PayOrder", mock.Anything, order.UserUUID, orderUUID, paymentMethod).Return(transactionUUID, nil).Once()
+	orderRepository.On("UpdateOrder", mock.Anything, orderUUID, orderInfo).Return(expectedErr).Once()
 
 	_, err := orderService.PayOrder(ctx, orderUUID, paymentMethod)
 	assert.Error(t, err)

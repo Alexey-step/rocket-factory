@@ -19,8 +19,8 @@ func (s *service) OrderPaidHandler(ctx context.Context, msg kafka.Message) error
 
 	logger.Info(ctx, "Processing message",
 		zap.String("topic", msg.Topic),
-		zap.Any("partition", msg.Partition),
-		zap.Any("offset", msg.Offset),
+		zap.Int32("partition", msg.Partition),
+		zap.Int64("offset", msg.Offset),
 		zap.String("order_uuid", event.OrderUUID),
 		zap.String("event_uuid", event.EventUUID),
 		zap.String("payment_method", event.PaymentMethod),
@@ -38,7 +38,10 @@ func (s *service) OrderPaidHandler(ctx context.Context, msg kafka.Message) error
 	err = s.telegramService.SendPaidNotification(ctx, orderPaid)
 	if err != nil {
 		logger.Error(ctx, "Failed to produce order paid event to Telegram",
-			zap.Any("order_paid", orderPaid),
+			zap.String("event_uuid", orderPaid.EventUUID),
+			zap.String("order_uuid", orderPaid.OrderUUID),
+			zap.String("payment_method", orderPaid.PaymentMethod),
+			zap.String("transaction_uuid", orderPaid.TransactionUUID),
 			zap.Error(err),
 		)
 		return err

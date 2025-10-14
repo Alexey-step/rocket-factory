@@ -10,6 +10,10 @@ type IamGRPCConfig interface {
 type LoggerConfig interface {
 	Level() string
 	AsJson() bool
+	OtelEnabled() bool
+	OtelServiceName() string
+	OtelServiceEnvironment() string
+	OtelEndpoint() string
 }
 
 type SessionConfig interface {

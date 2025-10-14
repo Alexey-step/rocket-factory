@@ -5,9 +5,12 @@ import (
 	"errors"
 	"net/http"
 
+	"go.opentelemetry.io/otel/attribute"
+	"go.opentelemetry.io/otel/metric"
 	"go.uber.org/zap"
 
 	"github.com/Alexey-step/rocket-factory/order/internal/converter"
+	"github.com/Alexey-step/rocket-factory/order/internal/metrics"
 	"github.com/Alexey-step/rocket-factory/order/internal/model"
 	"github.com/Alexey-step/rocket-factory/platform/pkg/logger"
 	orderV1 "github.com/Alexey-step/rocket-factory/shared/pkg/openapi/order/v1"
@@ -32,6 +35,11 @@ func (a *api) CreateOrder(ctx context.Context, req *orderV1.CreateOrderRequest, 
 		)
 		return nil, err
 	}
+
+	// Запись метрики успешного создания заказа
+	metrics.OrdersTotal.Add(ctx, 1, metric.WithAttributes(
+		attribute.String("method", "CreateOrder"),
+	))
 
 	return &orderV1.CreateOrderResponse{
 		OrderUUID:  converter.StringToUUID(orderInfo.OrderUUID),

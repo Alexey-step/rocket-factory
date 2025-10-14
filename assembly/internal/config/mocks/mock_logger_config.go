@@ -109,6 +109,186 @@ func (_c *LoggerConfig_Level_Call) RunAndReturn(run func() string) *LoggerConfig
 	return _c
 }
 
+// OtelEnabled provides a mock function with no fields
+func (_m *LoggerConfig) OtelEnabled() bool {
+	ret := _m.Called()
+
+	if len(ret) == 0 {
+		panic("no return value specified for OtelEnabled")
+	}
+
+	var r0 bool
+	if rf, ok := ret.Get(0).(func() bool); ok {
+		r0 = rf()
+	} else {
+		r0 = ret.Get(0).(bool)
+	}
+
+	return r0
+}
+
+// LoggerConfig_OtelEnabled_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'OtelEnabled'
+type LoggerConfig_OtelEnabled_Call struct {
+	*mock.Call
+}
+
+// OtelEnabled is a helper method to define mock.On call
+func (_e *LoggerConfig_Expecter) OtelEnabled() *LoggerConfig_OtelEnabled_Call {
+	return &LoggerConfig_OtelEnabled_Call{Call: _e.mock.On("OtelEnabled")}
+}
+
+func (_c *LoggerConfig_OtelEnabled_Call) Run(run func()) *LoggerConfig_OtelEnabled_Call {
+	_c.Call.Run(func(args mock.Arguments) {
+		run()
+	})
+	return _c
+}
+
+func (_c *LoggerConfig_OtelEnabled_Call) Return(_a0 bool) *LoggerConfig_OtelEnabled_Call {
+	_c.Call.Return(_a0)
+	return _c
+}
+
+func (_c *LoggerConfig_OtelEnabled_Call) RunAndReturn(run func() bool) *LoggerConfig_OtelEnabled_Call {
+	_c.Call.Return(run)
+	return _c
+}
+
+// OtelEndpoint provides a mock function with no fields
+func (_m *LoggerConfig) OtelEndpoint() string {
+	ret := _m.Called()
+
+	if len(ret) == 0 {
+		panic("no return value specified for OtelEndpoint")
+	}
+
+	var r0 string
+	if rf, ok := ret.Get(0).(func() string); ok {
+		r0 = rf()
+	} else {
+		r0 = ret.Get(0).(string)
+	}
+
+	return r0
+}
+
+// LoggerConfig_OtelEndpoint_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'OtelEndpoint'
+type LoggerConfig_OtelEndpoint_Call struct {
+	*mock.Call
+}
+
+// OtelEndpoint is a helper method to define mock.On call
+func (_e *LoggerConfig_Expecter) OtelEndpoint() *LoggerConfig_OtelEndpoint_Call {
+	return &LoggerConfig_OtelEndpoint_Call{Call: _e.mock.On("OtelEndpoint")}
+}
+
+func (_c *LoggerConfig_OtelEndpoint_Call) Run(run func()) *LoggerConfig_OtelEndpoint_Call {
+	_c.Call.Run(func(args mock.Arguments) {
+		run()
+	})
+	return _c
+}
+
+func (_c *LoggerConfig_OtelEndpoint_Call) Return(_a0 string) *LoggerConfig_OtelEndpoint_Call {
+	_c.Call.Return(_a0)
+	return _c
+}
+
+func (_c *LoggerConfig_OtelEndpoint_Call) RunAndReturn(run func() string) *LoggerConfig_OtelEndpoint_Call {
+	_c.Call.Return(run)
+	return _c
+}
+
+// OtelServiceEnvironment provides a mock function with no fields
+func (_m *LoggerConfig) OtelServiceEnvironment() string {
+	ret := _m.Called()
+
+	if len(ret) == 0 {
+		panic("no return value specified for OtelServiceEnvironment")
+	}
+
+	var r0 string
+	if rf, ok := ret.Get(0).(func() string); ok {
+		r0 = rf()
+	} else {
+		r0 = ret.Get(0).(string)
+	}
+
+	return r0
+}
+
+// LoggerConfig_OtelServiceEnvironment_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'OtelServiceEnvironment'
+type LoggerConfig_OtelServiceEnvironment_Call struct {
+	*mock.Call
+}
+
+// OtelServiceEnvironment is a helper method to define mock.On call
+func (_e *LoggerConfig_Expecter) OtelServiceEnvironment() *LoggerConfig_OtelServiceEnvironment_Call {
+	return &LoggerConfig_OtelServiceEnvironment_Call{Call: _e.mock.On("OtelServiceEnvironment")}
+}
+
+func (_c *LoggerConfig_OtelServiceEnvironment_Call) Run(run func()) *LoggerConfig_OtelServiceEnvironment_Call {
+	_c.Call.Run(func(args mock.Arguments) {
+		run()
+	})
+	return _c
+}
+
+func (_c *LoggerConfig_OtelServiceEnvironment_Call) Return(_a0 string) *LoggerConfig_OtelServiceEnvironment_Call {
+	_c.Call.Return(_a0)
+	return _c
+}
+
+func (_c *LoggerConfig_OtelServiceEnvironment_Call) RunAndReturn(run func() string) *LoggerConfig_OtelServiceEnvironment_Call {
+	_c.Call.Return(run)
+	return _c
+}
+
+// OtelServiceName provides a mock function with no fields
+func (_m *LoggerConfig) OtelServiceName() string {
+	ret := _m.Called()
+
+	if len(ret) == 0 {
+		panic("no return value specified for OtelServiceName")
+	}
+
+	var r0 string
+	if rf, ok := ret.Get(0).(func() string); ok {
+		r0 = rf()
+	} else {
+		r0 = ret.Get(0).(string)
+	}
+
+	return r0
+}
+
+// LoggerConfig_OtelServiceName_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'OtelServiceName'
+type LoggerConfig_OtelServiceName_Call struct {
+	*mock.Call
+}
+
+// OtelServiceName is a helper method to define mock.On call
+func (_e *LoggerConfig_Expecter) OtelServiceName() *LoggerConfig_OtelServiceName_Call {
+	return &LoggerConfig_OtelServiceName_Call{Call: _e.mock.On("OtelServiceName")}
+}
+
+func (_c *LoggerConfig_OtelServiceName_Call) Run(run func()) *LoggerConfig_OtelServiceName_Call {
+	_c.Call.Run(func(args mock.Arguments) {
+		run()
+	})
+	return _c
+}
+
+func (_c *LoggerConfig_OtelServiceName_Call) Return(_a0 string) *LoggerConfig_OtelServiceName_Call {
+	_c.Call.Return(_a0)
+	return _c
+}
+
+func (_c *LoggerConfig_OtelServiceName_Call) RunAndReturn(run func() string) *LoggerConfig_OtelServiceName_Call {
+	_c.Call.Return(run)
+	return _c
+}
+
 // NewLoggerConfig creates a new instance of LoggerConfig. It also registers a testing interface on the mock and a cleanup function to assert the mocks expectations.
 // The first argument is typically a *testing.T value.
 func NewLoggerConfig(t interface {

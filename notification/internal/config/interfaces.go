@@ -5,6 +5,10 @@ import "github.com/IBM/sarama"
 type LoggerConfig interface {
 	Level() string
 	AsJson() bool
+	OtelEnabled() bool
+	OtelServiceName() string
+	OtelServiceEnvironment() string
+	OtelEndpoint() string
 }
 
 type OrderAssembledConsumerConfig interface {

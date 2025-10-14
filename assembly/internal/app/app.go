@@ -2,13 +2,16 @@ package app
 
 import (
 	"context"
+	"fmt"
 
 	"github.com/pkg/errors"
 	"go.uber.org/zap"
 
 	"github.com/Alexey-step/rocket-factory/assembly/internal/config"
+	assemblyMetrics "github.com/Alexey-step/rocket-factory/assembly/internal/metrics"
 	"github.com/Alexey-step/rocket-factory/platform/pkg/closer"
 	"github.com/Alexey-step/rocket-factory/platform/pkg/logger"
+	platformMetrics "github.com/Alexey-step/rocket-factory/platform/pkg/metrics"
 )
 
 type App struct {
@@ -62,6 +65,7 @@ func (a *App) initDeps(ctx context.Context) error {
 		a.initDI,
 		a.initLogger,
 		a.initCloser,
+		a.initMetrics,
 	}
 
 	for _, f := range inits {
@@ -80,10 +84,7 @@ func (a *App) initDI(_ context.Context) error {
 }
 
 func (a *App) initLogger(_ context.Context) error {
-	return logger.Init(
-		config.AppConfig().Logger.Level(),
-		config.AppConfig().Logger.AsJson(),
-	)
+	return logger.Init(config.AppConfig().Logger) //nolint:contextcheck
 }
 
 func (a *App) initCloser(_ context.Context) error {
@@ -97,6 +98,22 @@ func (a *App) runConsumer(ctx context.Context) error {
 	err := a.diContainer.OrderConsumerService().RunConsumer(ctx)
 	if err != nil {
 		return err
+	}
+
+	return nil
+}
+
+func (a *App) initMetrics(ctx context.Context) error {
+	err := platformMetrics.InitProvider(ctx, config.AppConfig().Metrics)
+	if err != nil {
+		panic(fmt.Sprintf("failed to init metrics provider: %v", err))
+	}
+
+	closer.AddNamed("Metrics Provider", platformMetrics.Shutdown)
+
+	err = assemblyMetrics.InitMetrics(config.AppConfig().Metrics)
+	if err != nil {
+		panic(fmt.Sprintf("failed to init Assembly metrics: %v", err))
 	}
 
 	return nil

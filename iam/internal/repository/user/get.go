@@ -27,7 +27,9 @@ func (r *repository) GetUser(ctx context.Context, userUUID string) (model.User, 
 	var user repoModel.User
 	err = r.db.QueryRow(ctx, query, args...).Scan(
 		&user.UUID,
-		&user.Info,
+		&user.Login,
+		&user.Email,
+		&user.NotificationMethods,
 		&user.CreatedAt,
 		&user.UpdatedAt,
 	)

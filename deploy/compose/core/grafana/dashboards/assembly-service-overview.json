@@ -1,0 +1,110 @@
+{
+  "id": null,
+  "title": "Assembly Service Overview",
+  "description": "Основные метрики Assembly gRPC сервиса",
+  "tags": ["assembly", "grpc", "microservice"],
+  "timezone": "browser",
+  "refresh": "5s",
+  "time": {
+    "from": "now-15m",
+    "to": "now"
+  },
+  "timepicker": {
+    "refresh_intervals": ["5s", "10s", "30s", "1m", "5m", "15m", "30m", "1h", "2h", "1d"]
+  },
+  "editable": true,
+  "gnetId": null,
+  "graphTooltip": 0,
+  "links": [],
+  "liveNow": false,
+  "annotations": {
+    "list": []
+  },
+  "templating": {
+    "list": []
+  },
+  "panels": [
+    {
+      "id": 1,
+      "title": "Assembly duration Rate 50th percentile",
+      "description": "Гистограмма длительности сборки коробля",
+      "type": "timeseries",
+      "gridPos": {"h": 8, "w": 12, "x": 0, "y": 8},
+      "targets": [
+        {
+          "expr": "histogram_quantile(0.5, rate(assembly_duration_seconds_bucket[1m]))",
+          "legendFormat": "Rocket assembly duration",
+          "datasource": {
+            "type": "prometheus",
+            "uid": "aex9w9dqvarcwa"
+          }
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {
+          "unit": "s",
+          "min": 0,
+          "color": {
+            "mode": "fixed",
+            "fixedColor": "green"
+          }
+        }
+      }
+    },
+    {
+      "id": 2,
+      "title": "Assembly duration Rate 95th percentile",
+      "description": "Гистограмма длительности сборки коробля",
+      "type": "timeseries",
+      "gridPos": {"h": 8, "w": 12, "x": 12, "y": 8},
+      "targets": [
+        {
+          "expr": "histogram_quantile(0.95, rate(assembly_duration_seconds_bucket[1m]))",
+          "legendFormat": "Rocket assembly duration",
+          "datasource": {
+            "type": "prometheus",
+            "uid": "aex9w9dqvarcwa"
+          }
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {
+          "unit": "s",
+          "min": 0,
+          "color": {
+            "mode": "fixed",
+            "fixedColor": "green"
+          }
+        }
+      }
+    },
+    {
+      "id": 3,
+      "title": "Average Assembly Duration",
+      "type": "timeseries",
+      "gridPos": {"h": 8, "w": 12, "x": 12, "y": 16},
+      "targets": [{
+        "expr": "rate(assembly_duration_seconds_sum[1m]) / rate(assembly_duration_seconds_count[1m])",
+        "legendFormat": "Average duration",
+        "datasource": {
+          "type": "prometheus",
+          "uid": "aex9w9dqvarcwa"
+        }
+      }],
+      "fieldConfig": {
+        "defaults": {
+          "unit": "s",
+          "min": 0,
+          "color": {
+            "mode": "fixed",
+            "fixedColor": "green"
+          }
+        }
+      }
+    }
+
+  ],
+  "version": 1,
+  "uid": "assembly-service-overview",
+  "schemaVersion": 30
+}

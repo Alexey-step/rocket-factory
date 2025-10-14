@@ -1,10 +1,18 @@
 package config
 
-import "github.com/IBM/sarama"
+import (
+	"time"
+
+	"github.com/IBM/sarama"
+)
 
 type LoggerConfig interface {
 	Level() string
 	AsJson() bool
+	OtelEnabled() bool
+	OtelServiceName() string
+	OtelServiceEnvironment() string
+	OtelEndpoint() string
 }
 
 type OrderAssembledProducerConfig interface {
@@ -20,4 +28,12 @@ type OrderPaidConsumerConfig interface {
 
 type KafkaConfig interface {
 	Brokers() []string
+}
+
+type MetricsConfig interface {
+	CollectorEndpoint() string
+	CollectorInterval() time.Duration
+	CollectorServiceName() string
+	CollectorServiceVersion() string
+	CollectorEnvironment() string
 }

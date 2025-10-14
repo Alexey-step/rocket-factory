@@ -7,6 +7,7 @@ import (
 
 	"go.uber.org/zap"
 
+	assemblyMetrics "github.com/Alexey-step/rocket-factory/assembly/internal/metrics"
 	"github.com/Alexey-step/rocket-factory/assembly/internal/model"
 	"github.com/Alexey-step/rocket-factory/platform/pkg/kafka"
 	"github.com/Alexey-step/rocket-factory/platform/pkg/logger"
@@ -21,8 +22,8 @@ func (s *service) OrderHandler(ctx context.Context, msg kafka.Message) error {
 
 	logger.Info(ctx, "Processing message",
 		zap.String("topic", msg.Topic),
-		zap.Any("partition", msg.Partition),
-		zap.Any("offset", msg.Offset),
+		zap.Int32("partition", msg.Partition),
+		zap.Int64("offset", msg.Offset),
 		zap.String("order_uuid", event.OrderUUID),
 		zap.String("event_uuid", event.EventUUID),
 		zap.String("payment_method", event.PaymentMethod),
@@ -47,11 +48,15 @@ func (s *service) OrderHandler(ctx context.Context, msg kafka.Message) error {
 	err = s.orderProducer.ProduceShipAssembled(ctx, shipAssembled)
 	if err != nil {
 		logger.Error(ctx, "Failed to produce ship assembled event",
-			zap.Any("ship_assembled", shipAssembled),
+			zap.String("event_uuid", shipAssembled.EventUUID),
+			zap.String("order_uuid", shipAssembled.OrderUUID),
+			zap.Int64("build_time_sec", shipAssembled.BuildTimeSec),
 			zap.Error(err),
 		)
 		return err
 	}
+
+	assemblyMetrics.RocketBuildingDuration.Record(ctx, delay.Seconds())
 
 	return nil
 }
